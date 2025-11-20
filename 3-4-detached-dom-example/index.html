@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detached DOM Nodes 테스트</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      .controls {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+      }
+
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 5px;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+
+      button.danger {
+        background: #dc3545;
+      }
+
+      button.danger:hover {
+        background: #c82333;
+      }
+
+      button.success {
+        background: #28a745;
+      }
+
+      button.success:hover {
+        background: #218838;
+      }
+
+      .info {
+        background: #e7f3ff;
+        padding: 15px;
+        border-left: 4px solid #007bff;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .warning {
+        background: #fff3cd;
+        padding: 15px;
+        border-left: 4px solid #ffc107;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .stats {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        margin: 20px 0;
+      }
+
+      #container {
+        min-height: 200px;
+        border: 2px dashed #ccc;
+        padding: 20px;
+        border-radius: 4px;
+        margin: 20px 0;
+      }
+
+      .node-item {
+        background: white;
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      code {
+        background: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+
+      ol {
+        padding-left: 20px;
+      }
+
+      ol li {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔍 Detached DOM Nodes 메모리 누수 테스트</h1>
+
+    <div class="info">
+      <strong>이 예제는 무엇을 하나요?</strong>
+      <p>
+        DOM에서 제거된 노드를 자바스크립트 배열에 계속 참조하여 메모리 누수를
+        일으키는 전형적인 패턴을 시연합니다. 크롬 개발자 도구의 Memory
+        프로파일러로 Detached DOM 노드를 확인할 수 있습니다.
+      </p>
+    </div>
+
+    <div class="controls">
+      <h3>컨트롤</h3>
+      <button id="createBtn">노드 생성 및 제거 (메모리 누수)</button>
+      <button id="createMultipleBtn">10개 노드 생성 및 제거</button>
+      <button class="danger" id="clearBtn">참조 배열 비우기 (누수 해결)</button>
+      <button class="success" id="viewBtn">참조 배열 확인</button>
+    </div>
+
+    <div class="stats">
+      <h3>통계</h3>
+      <p>생성된 노드 수: <strong id="nodeCount">0</strong></p>
+      <p>
+        참조 배열 크기: <strong id="arraySize">0</strong>
+        (메모리에 남아있는 Detached 노드)
+      </p>
+    </div>
+
+    <div id="container">
+      <p style="color: #6c757d">
+        여기에 노드가 생성되었다가 제거됩니다...
+      </p>
+    </div>
+
+    <div class="warning">
+      <h3>📋 Memory Profiler로 확인하는 방법</h3>
+      <ol>
+        <li>
+          크롬 개발자 도구를 엽니다 (F12 또는 Cmd/Ctrl+Opt+I)
+        </li>
+        <li>
+          <strong>Memory</strong> 탭을 선택합니다
+        </li>
+        <li>
+          "Heap snapshot"을 선택하고 <code>Take snapshot</code> 버튼을
+          클릭합니다 (Snapshot 1)
+        </li>
+        <li>
+          위의 "10개 노드 생성 및 제거" 버튼을 클릭합니다
+        </li>
+        <li>
+          다시 <code>Take snapshot</code> 버튼을 클릭합니다 (Snapshot 2)
+        </li>
+        <li>
+          Snapshot 2를 선택하고, 검색창에 <code>Detached</code>를 입력합니다
+        </li>
+        <li>
+          <strong>Detached HTMLDivElement</strong> 항목을 찾아 펼쳐봅니다
+        </li>
+        <li>
+          Detached 노드를 클릭하면 하단에 <strong>Retainers</strong> 패널이
+          나타납니다
+        </li>
+        <li>
+          Retainer 경로를 따라가면 <code>detachedNodes</code> 배열이 이 노드를
+          참조하고 있는 것을 확인할 수 있습니다
+        </li>
+      </ol>
+    </div>
+
+    <div class="info">
+      <h3>🧹 메모리 누수 해결 확인하기</h3>
+      <ol>
+        <li>"참조 배열 비우기" 버튼을 클릭합니다</li>
+        <li>
+          새로운 Heap snapshot을 찍습니다 (Snapshot 3)
+        </li>
+        <li>
+          Snapshot 2와 Snapshot 3을 비교하면 Detached 노드가 사라진 것을 확인할
+          수 있습니다
+        </li>
+        <li>
+          또는 Snapshot 3에서 "Detached"를 검색하면 이제 거의 없거나 크게
+          줄어든 것을 볼 수 있습니다
+        </li>
+      </ol>
+    </div>
+
+    <script>
+      // ❌ 나쁜 예: DOM에서 제거된 노드를 배열에 저장하여 메모리 누수 발생
+      let detachedNodes = []
+      let nodeCounter = 0
+
+      const container = document.getElementById('container')
+      const nodeCountEl = document.getElementById('nodeCount')
+      const arraySizeEl = document.getElementById('arraySize')
+
+      function updateStats() {
+        nodeCountEl.textContent = nodeCounter
+        arraySizeEl.textContent = detachedNodes.length
+      }
+
+      // 노드 생성 및 제거 (메모리 누수 발생)
+      function createAndDetachNode() {
+        nodeCounter++
+
+        // 1. DOM 노드 생성
+        const div = document.createElement('div')
+        div.className = 'node-item'
+        div.innerHTML = `
+          <h4>노드 #${nodeCounter}</h4>
+          <p>이 노드는 곧 DOM에서 제거되지만, 자바스크립트 배열에는 남아있습니다.</p>
+          <p>생성 시간: ${new Date().toLocaleTimeString()}</p>
+        `
+
+        // 2. DOM에 추가
+        container.appendChild(div)
+
+        // 3. 잠시 후 DOM에서 제거 (하지만 detachedNodes 배열에는 참조 유지!)
+        setTimeout(() => {
+          if (div.parentNode) {
+            container.removeChild(div)
+          }
+
+          // ❌ 문제: DOM에서 제거했지만 배열에 저장하여 메모리 누수 발생
+          detachedNodes.push(div)
+          updateStats()
+
+          console.log(
+            `%c노드 #${nodeCounter}가 DOM에서 제거되었지만 detachedNodes 배열에 남아있습니다!`,
+            'color: red; font-weight: bold',
+          )
+        }, 500)
+      }
+
+      // 버튼 이벤트 리스너
+      document.getElementById('createBtn').addEventListener('click', () => {
+        createAndDetachNode()
+      })
+
+      document.getElementById('createMultipleBtn').addEventListener('click', () => {
+        console.log('%c10개 노드를 생성합니다...', 'color: blue; font-weight: bold')
+        for (let i = 0; i < 10; i++) {
+          setTimeout(() => createAndDetachNode(), i * 100)
+        }
+      })
+
+      // ✅ 해결: 참조 배열 비우기
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        const count = detachedNodes.length
+        detachedNodes = []
+        updateStats()
+
+        console.log(
+          `%c✅ 참조 배열을 비웠습니다! ${count}개의 Detached 노드가 이제 가비지 컬렉션 대상이 됩니다.`,
+          'color: green; font-weight: bold',
+        )
+
+        alert(
+          `참조 배열을 비웠습니다!\n\n이제 Memory Profiler에서 새로운 Heap snapshot을 찍어보세요.\nDetached DOM 노드가 사라진 것을 확인할 수 있습니다.`,
+        )
+      })
+
+      // 배열 내용 확인
+      document.getElementById('viewBtn').addEventListener('click', () => {
+        console.log('detachedNodes 배열 내용:', detachedNodes)
+        console.log('배열 크기:', detachedNodes.length)
+
+        if (detachedNodes.length === 0) {
+          alert('참조 배열이 비어있습니다.')
+        } else {
+          alert(
+            `참조 배열에 ${detachedNodes.length}개의 Detached 노드가 있습니다.\n\n콘솔을 확인하세요.`,
+          )
+        }
+      })
+
+      // 초기 통계 업데이트
+      updateStats()
+
+      // 페이지 로드 시 안내 메시지
+      console.log(
+        '%c🔍 Detached DOM Nodes 테스트 시작',
+        'color: blue; font-size: 16px; font-weight: bold',
+      )
+      console.log(
+        '%c위의 버튼을 클릭하여 Detached DOM 노드를 생성하고, Memory Profiler로 확인해보세요!',
+        'color: gray',
+      )
+    </script>
+  </body>
+</html>

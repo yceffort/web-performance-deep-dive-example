@@ -1,0 +1,9 @@
+{
+  "name": "package-a",
+  "version": "1.0.0",
+  "description": "Example package that depends on lodash@^3.0.0",
+  "main": "src/index.js",
+  "dependencies": {
+    "lodash": "^3.10.1"
+  }
+}

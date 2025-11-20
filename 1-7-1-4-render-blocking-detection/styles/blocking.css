@@ -1,0 +1,39 @@
+/* 렌더 블로킹 CSS - 기본 스타일 */
+
+/* 이 CSS는 media 속성 없이 로드되므로 렌더링을 블로킹합니다 */
+
+body {
+  font-size: 16px;
+}
+
+.container {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 추가 스타일로 파일 크기를 늘림 */
+.dummy-class-1 {
+  color: red;
+}
+.dummy-class-2 {
+  color: blue;
+}
+.dummy-class-3 {
+  color: green;
+}
+.dummy-class-4 {
+  color: yellow;
+}
+.dummy-class-5 {
+  color: purple;
+}

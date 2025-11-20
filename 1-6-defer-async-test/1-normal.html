@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>1. 일반 스크립트 (Blocking)</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      h1 {
+        color: #e53e3e;
+      }
+      pre {
+        background: #1a202c;
+        color: #f7fafc;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      .warning {
+        background: #fff5f5;
+        border-left: 4px solid #e53e3e;
+        padding: 15px;
+        margin: 15px 0;
+      }
+      code {
+        background: #edf2f7;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Courier New', monospace;
+      }
+    </style>
+
+    <script>
+      console.log('⏰ [inline] <head> 시작 -', new Date().toISOString())
+    </script>
+
+    <!-- ⚠️ 일반 스크립트 - HTML 파싱 블로킹 -->
+    <script src="./scripts/heavy-script.js"></script>
+
+    <script>
+      console.log('⏰ [inline] <head> 끝 (스크립트 실행 후) -', new Date().toISOString())
+
+      // DOMContentLoaded 이벤트 리스너
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎉 [DOMContentLoaded] 발생 -', new Date().toISOString())
+
+        const eventLog = document.getElementById('event-log')
+        if (eventLog) {
+          eventLog.textContent = '✅ DOMContentLoaded 발생 완료'
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <div class="card">
+      <h1>🔴 시나리오 1: 일반 스크립트 (Blocking)</h1>
+      <p>일반 <code>&lt;script src="..."&gt;</code> 태그는 HTML 파싱을 완전히 멈춥니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>📋 테스트 방법</h2>
+      <ol>
+        <li>크롬 개발자 도구 열기 (F12)</li>
+        <li><strong>Performance 탭</strong> 선택</li>
+        <li>왼쪽 위 <strong>Record 버튼 (●)</strong> 클릭</li>
+        <li><strong>페이지 새로고침</strong> (Cmd+R 또는 Ctrl+R)</li>
+        <li>몇 초 후 <strong>Stop 버튼 (■)</strong> 클릭</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🔍 확인 사항</h2>
+      <div class="warning">
+        <strong>⚠️ Parser Blocking 확인:</strong>
+        <ul>
+          <li>Main 트랙에서 "Parse HTML" 작업이 중단되는 지점 찾기</li>
+          <li>"Evaluate Script - heavy-script.js" 구간 확인 (약 500ms)</li>
+          <li>스크립트 실행 중에는 HTML 파싱이 멈춤</li>
+          <li>스크립트 실행 완료 후 파싱 재개</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 예상 타임라인</h2>
+      <pre>
+Main Thread:
+├─ Parse HTML (0~100ms)
+├─ Evaluate Script - heavy-script.js (100~600ms) ← 파싱 블로킹
+├─ Parse HTML (600~700ms)
+└─ DOMContentLoaded (700ms)
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>📝 콘솔 출력</h2>
+      <p>콘솔에서 다음 순서로 로그가 출력됩니다:</p>
+      <ol>
+        <li><code>⏰ [inline] &lt;head&gt; 시작</code></li>
+        <li><code>🔴 [heavy-script.js] 실행 시작</code></li>
+        <li><code>🔴 [heavy-script.js] 실행 완료 - ~500ms</code></li>
+        <li><code>⏰ [inline] &lt;head&gt; 끝</code></li>
+        <li><code>🎉 [DOMContentLoaded] 발생</code></li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🎯 핵심 포인트</h2>
+      <ul>
+        <li>일반 스크립트는 다운로드 + 파싱 + 실행이 완료될 때까지 HTML 파싱을 멈춥니다</li>
+        <li>
+          <code>&lt;body&gt;</code>의 이미지나 다른 리소스 발견이 지연됩니다
+        </li>
+        <li>이것이 바로 <code>defer</code>나 <code>async</code>가 필요한 이유입니다</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>✅ 이벤트 상태</h2>
+      <p id="event-log">대기 중...</p>
+    </div>
+
+    <script>
+      console.log('⏰ [inline] <body> 끝 -', new Date().toISOString())
+    </script>
+  </body>
+</html>

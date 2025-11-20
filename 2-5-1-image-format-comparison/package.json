@@ -1,0 +1,12 @@
+{
+  "name": "image-format-comparison",
+  "version": "1.0.0",
+  "description": "이미지 포맷별 용량 비교 테스트",
+  "type": "module",
+  "scripts": {
+    "compare": "node compare.js"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

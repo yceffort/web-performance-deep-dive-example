@@ -1,0 +1,16 @@
+{
+  "name": "duplicate-packages-example",
+  "version": "1.0.0",
+  "description": "Example project demonstrating duplicate package installation",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "check-duplicates": "npm ls lodash"
+  },
+  "dependencies": {
+    "package-a": "file:./local-packages/package-a",
+    "package-b": "file:./local-packages/package-b",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {}
+}

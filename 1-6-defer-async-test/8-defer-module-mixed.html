@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>defer와 module 혼용 실행 순서 테스트</title>
+    <style>
+      body {
+        font-family: 'Courier New', monospace;
+        max-width: 1000px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #1e1e1e;
+        color: #d4d4d4;
+      }
+      h1 {
+        color: #4ec9b0;
+        border-bottom: 2px solid #4ec9b0;
+        padding-bottom: 10px;
+      }
+      .log-container {
+        background: #252526;
+        border: 1px solid #3e3e42;
+        border-radius: 5px;
+        padding: 20px;
+        margin: 20px 0;
+        min-height: 400px;
+      }
+      .log-entry {
+        padding: 8px 12px;
+        margin: 5px 0;
+        border-left: 3px solid;
+        background: rgba(255, 255, 255, 0.05);
+        font-size: 14px;
+      }
+      .log-inline {
+        border-left-color: #ce9178;
+      }
+      .log-regular {
+        border-left-color: #dcdcaa;
+      }
+      .log-defer {
+        border-left-color: #4ec9b0;
+      }
+      .log-module {
+        border-left-color: #569cd6;
+      }
+      .log-async-module {
+        border-left-color: #c586c0;
+      }
+      .log-event {
+        border-left-color: #4fc1ff;
+      }
+      .timestamp {
+        color: #858585;
+        font-size: 12px;
+        margin-right: 10px;
+      }
+      .description {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(78, 201, 176, 0.1);
+        border-left: 3px solid #4ec9b0;
+        border-radius: 3px;
+      }
+      .highlight {
+        color: #4ec9b0;
+        font-weight: bold;
+      }
+      .code-block {
+        background: #1e1e1e;
+        border: 1px solid #3e3e42;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 3px;
+        overflow-x: auto;
+        font-size: 13px;
+      }
+      .expected {
+        background: rgba(78, 201, 176, 0.1);
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+      .expected ol {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+    </style>
+    <script>
+      // 로그 기록 유틸리티
+      const startTime = performance.now()
+      window.executionLogs = []
+
+      function addLog(message, type) {
+        const timestamp = (performance.now() - startTime).toFixed(2)
+        const log = { message, type, timestamp }
+        window.executionLogs.push(log)
+        console.log(`[${timestamp}ms] ${message}`)
+      }
+
+      function displayLogs() {
+        const container = document.getElementById('log-output')
+        if (!container) return
+
+        container.innerHTML = window.executionLogs
+          .map(
+            (log, index) => `
+          <div class="log-entry log-${log.type}">
+            <span class="timestamp">${log.timestamp}ms</span>
+            <span class="highlight">${index + 1}.</span> ${log.message}
+          </div>
+        `
+          )
+          .join('')
+      }
+
+      // 1. Inline script (즉시 실행)
+      addLog('Inline script 실행 - 즉시 실행', 'inline')
+    </script>
+
+    <script src="scripts/mixed-regular.js"></script>
+    <!-- 2. Regular script - 다운로드 + 실행 (파싱 블로킹) -->
+
+    <script defer src="scripts/mixed-defer-a.js"></script>
+    <!-- defer 큐에 추가 (순서: 1) -->
+
+    <script type="module" src="scripts/mixed-module-b.js"></script>
+    <!-- defer 큐에 추가 (순서: 2) -->
+
+    <script defer src="scripts/mixed-defer-c.js"></script>
+    <!-- defer 큐에 추가 (순서: 3) -->
+
+    <script type="module" async src="scripts/mixed-module-async.js"></script>
+    <!-- async - 다운로드 완료 즉시 실행 (defer 큐와 무관) -->
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        addLog('DOMContentLoaded 이벤트 발생 - defer 큐 모두 실행 완료', 'event')
+        displayLogs()
+      })
+    </script>
+  </head>
+  <body>
+    <h1>🔍 defer와 module 혼용 실행 순서 테스트</h1>
+
+    <div class="description">
+      <strong>테스트 목적:</strong> <code>&lt;script defer&gt;</code>와
+      <code>&lt;script type="module"&gt;</code>이 같은 "defer 큐"에서 HTML 선언
+      순서대로 실행되는 것을 확인합니다.
+      <br /><br />
+      <strong>핵심 개념:</strong> 모듈 스크립트는 기본적으로 defer처럼 동작하며,
+      defer와 module은 같은 실행 큐를 공유합니다.
+    </div>
+
+    <h2>📊 실행 로그</h2>
+    <div class="log-container">
+      <div id="log-output">
+        <p style="color: #858585">로그 로딩 중...</p>
+      </div>
+    </div>
+
+    <div class="expected">
+      <h3>예상 실행 순서:</h3>
+      <ol>
+        <li>
+          <strong style="color: #ce9178">Inline script</strong> - 즉시 실행
+        </li>
+        <li>
+          <strong style="color: #dcdcaa">Regular script</strong> - 다운로드 + 실행
+          (파싱 블로킹)
+        </li>
+        <li><em style="color: #858585">(HTML 파싱 완료)</em></li>
+        <li>
+          <strong style="color: #c586c0">Async module</strong> - 다운로드 완료 시점에
+          따라 3-8번 사이 어디든 실행 가능
+        </li>
+        <li>
+          <strong style="color: #4ec9b0">defer-a.js</strong> - defer 큐 순서 1
+        </li>
+        <li>
+          <strong style="color: #569cd6">module-b.js</strong> - defer 큐 순서 2 (모듈
+          스크립트)
+        </li>
+        <li>
+          <strong style="color: #4ec9b0">defer-c.js</strong> - defer 큐 순서 3
+        </li>
+        <li>
+          <strong style="color: #4fc1ff">DOMContentLoaded</strong> - defer 큐 모두
+          실행 완료 후
+        </li>
+      </ol>
+    </div>
+
+    <div class="code-block">
+      <strong>HTML 구조:</strong>
+      <pre style="margin: 10px 0; color: #d4d4d4;">
+&lt;head&gt;
+  &lt;script&gt;
+    // 1. Inline 즉시 실행
+  &lt;/script&gt;
+
+  &lt;script src="/regular.js"&gt;&lt;/script&gt;
+  &lt;!-- 2. 일반 스크립트 - 다운로드 + 실행 (블로킹) --&gt;
+
+  &lt;script defer src="/defer-a.js"&gt;&lt;/script&gt;
+  &lt;!-- defer 큐에 추가 (순서: 1) --&gt;
+
+  &lt;script type="module" src="/module-b.js"&gt;&lt;/script&gt;
+  &lt;!-- defer 큐에 추가 (순서: 2) --&gt;
+
+  &lt;script defer src="/defer-c.js"&gt;&lt;/script&gt;
+  &lt;!-- defer 큐에 추가 (순서: 3) --&gt;
+
+  &lt;script type="module" async src="/module-async.js"&gt;&lt;/script&gt;
+  &lt;!-- async - 다운로드 완료 즉시 실행 --&gt;
+&lt;/head&gt;</pre
+      >
+    </div>
+
+    <div class="description">
+      <strong>핵심 포인트:</strong>
+      <ul>
+        <li>
+          <span class="highlight">defer와 module은 같은 큐</span>에서 실행 →
+          defer-a, module-b, defer-c 순서 보장
+        </li>
+        <li>
+          <span class="highlight">async module은 독립적</span> → 다운로드 완료 즉시
+          실행 (defer 큐와 무관)
+        </li>
+        <li>DOMContentLoaded는 defer 큐가 모두 실행된 후 발생</li>
+        <li>async module은 DOMContentLoaded를 기다리지 않음</li>
+      </ul>
+    </div>
+
+    <div class="description" style="background: rgba(197, 134, 192, 0.1)">
+      <strong>⚠️ async module 위치 주의:</strong>
+      <p>
+        async module의 실행 시점은 <strong>다운로드 속도</strong>에 따라
+        달라집니다:
+      </p>
+      <ul>
+        <li>
+          <strong>다운로드가 빠르면</strong>: HTML 파싱 중 실행 (2-3번 사이)
+        </li>
+        <li>
+          <strong>다운로드가 느리면</strong>: defer 큐 실행 후 (7-8번 사이)
+        </li>
+        <li>
+          이 테스트에서는 캐시된 로컬 파일이므로 매우 빨라서
+          <strong>3-4번 사이</strong>에 실행될 가능성이 높습니다.
+        </li>
+      </ul>
+    </div>
+
+    <p style="color: #858585; margin-top: 40px; text-align: center">
+      크롬 개발자 도구 Console 탭을 열면 더 자세한 로그를 볼 수 있습니다.<br />
+      여러 번 새로고침하면 async module의 실행 시점이 변할 수 있습니다.
+    </p>
+  </body>
+</html>

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>좋은 예: 읽기/쓰기 분리</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+
+      .header {
+        background: #51cf66;
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .info {
+        background: #d3f9d8;
+        border: 2px solid #51cf66;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .controls {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      button {
+        background: #51cf66;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      button:hover {
+        background: #40c057;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+      }
+
+      .box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+        transition: transform 0.2s;
+      }
+
+      .box:hover {
+        transform: scale(1.05);
+      }
+
+      .result {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .result h3 {
+        margin-top: 0;
+        color: #51cf66;
+      }
+
+      .metric {
+        font-size: 24px;
+        font-weight: bold;
+        color: #51cf66;
+        margin: 10px 0;
+      }
+
+      code {
+        background: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Courier New', monospace;
+      }
+
+      .comparison {
+        background: #fff3cd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>✅ 좋은 예: 읽기/쓰기 분리</h1>
+      <p>모든 읽기 작업을 먼저 수행하고, 그 다음 쓰기 작업을 수행합니다</p>
+    </div>
+
+    <div class="info">
+      <strong>📊 DevTools 확인 방법:</strong>
+      <ol>
+        <li>Chrome DevTools 열기 (F12 또는 Cmd+Option+I)</li>
+        <li>Performance 탭으로 이동</li>
+        <li>"Start profiling and reload page" (⟳) 버튼 클릭</li>
+        <li>
+          Main 스레드에서 "Recalculate Style"과 "Layout"이
+          <strong>한 번만</strong>
+          발생하는 것 확인
+        </li>
+        <li>나쁜 예와 비교하여 성능 차이 확인</li>
+      </ol>
+    </div>
+
+    <div class="controls">
+      <button onclick="runGoodExample()">
+        🟢 읽기/쓰기 분리 실행 (좋은 예)
+      </button>
+      <p style="margin-top: 10px; color: #666">
+        버튼을 클릭하면 1000개 요소의 높이를 읽고 수정합니다
+      </p>
+    </div>
+
+    <div class="container" id="container"></div>
+
+    <div class="result" id="result" style="display: none">
+      <h3>실행 결과</h3>
+      <div>실행 시간: <span class="metric" id="duration">-</span></div>
+      <div style="margin-top: 15px">
+        <strong>개선점:</strong>
+        <ul>
+          <li>
+            1단계: 모든 요소의 <code>offsetHeight</code>를 배열에 저장 (읽기만)
+          </li>
+          <li>
+            2단계: 저장된 값으로 모든 <code>style.height</code> 수정 (쓰기만)
+          </li>
+          <li>
+            읽기/쓰기 분리로 <strong>레이아웃 재계산이 1번만</strong> 발생
+          </li>
+          <li>나쁜 예 대비 <strong>5-10배 빠른 성능</strong></li>
+        </ul>
+      </div>
+      <div class="comparison" id="comparison"></div>
+    </div>
+
+    <script>
+      // 1000개의 박스 생성
+      const container = document.getElementById('container')
+      const COUNT = 1000
+
+      for (let i = 0; i < COUNT; i++) {
+        const box = document.createElement('div')
+        box.className = 'box'
+        box.textContent = i + 1
+        container.appendChild(box)
+      }
+
+      // 좋은 예: 읽기/쓰기 분리
+      function runGoodExample() {
+        console.log('🟢 좋은 예 실행 시작')
+
+        const elements = document.querySelectorAll('.box')
+        const startTime = performance.now()
+
+        // ✅ 좋은 패턴: 읽기와 쓰기를 분리
+
+        // 1단계: 모든 읽기 작업을 먼저 수행
+        console.log('  📖 1단계: 모든 요소의 높이 읽기...')
+        const heights = Array.from(elements).map((el) => el.offsetHeight)
+        // 레이아웃 계산이 여기서 한 번만 발생!
+
+        // 2단계: 모든 쓰기 작업을 나중에 수행
+        console.log('  ✍️  2단계: 모든 요소의 높이 수정...')
+        elements.forEach((el, i) => {
+          el.style.height = heights[i] + 10 + 'px'
+        })
+        // 추가 레이아웃 재계산 없음!
+
+        const endTime = performance.now()
+        const duration = (endTime - startTime).toFixed(2)
+
+        console.log(`🟢 좋은 예 실행 완료: ${duration}ms`)
+        console.log(
+          '✅ DevTools Performance 패널에서 "Layout"이 한 번만 발생하는 것을 확인하세요!',
+        )
+
+        // 결과 표시
+        document.getElementById('result').style.display = 'block'
+        document.getElementById('duration').textContent = duration + 'ms'
+
+        // 비교 정보 표시
+        const badExampleTime = localStorage.getItem('badExampleTime')
+        if (badExampleTime) {
+          const improvement =
+            ((badExampleTime - duration) / badExampleTime) * 100
+          document.getElementById('comparison').innerHTML = `
+            <strong>📊 성능 비교:</strong>
+            <ul>
+              <li>나쁜 예: ${badExampleTime}ms</li>
+              <li>좋은 예: ${duration}ms</li>
+              <li><strong style="color: #51cf66">약 ${improvement.toFixed(1)}% 개선!</strong></li>
+            </ul>
+          `
+        }
+
+        // 시간 저장
+        localStorage.setItem('goodExampleTime', duration)
+      }
+
+      // 페이지 로드 시 자동 실행 (DevTools에서 확인하기 위해)
+      window.addEventListener('load', () => {
+        console.log('='.repeat(50))
+        console.log('📊 읽기/쓰기 분리 데모')
+        console.log('='.repeat(50))
+        console.log('')
+        console.log(
+          '👉 DevTools Performance 패널을 열고 페이지를 새로고침하세요',
+        )
+        console.log(
+          '👉 Main 스레드에서 "Layout"이 한 번만 발생하는 것을 확인하세요',
+        )
+        console.log('')
+
+        // 자동 실행
+        setTimeout(() => {
+          runGoodExample()
+        }, 500)
+      })
+    </script>
+  </body>
+</html>

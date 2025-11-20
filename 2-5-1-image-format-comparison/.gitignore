@@ -1,0 +1,12 @@
+node_modules/
+package-lock.json
+
+# 이미지 파일들 (README에 추가 방법 안내)
+images/*.jpg
+images/*.jpeg
+images/*.png
+images/*.webp
+images/*.avif
+
+# 출력 파일들
+output/

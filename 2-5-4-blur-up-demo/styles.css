@@ -1,0 +1,308 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue',
+    Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  font-size: 2em;
+  margin-bottom: 10px;
+  color: #1a1a1a;
+}
+
+h2 {
+  font-size: 1.5em;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+}
+
+h3 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  color: #34495e;
+}
+
+.description {
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 15px;
+  margin-bottom: 30px;
+  border-radius: 4px;
+  color: #856404;
+}
+
+/* 단계별 비교 그리드 */
+.stage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.stage-item {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+}
+
+.stage-desc {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #6c757d;
+  text-align: center;
+}
+
+/* 이미지 래퍼 (공통) */
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 1단계: 흐릿한 프리뷰 */
+.blur-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(10px);
+  transform: scale(1.1); /* blur로 인한 테두리 제거 */
+  z-index: 1;
+}
+
+/* 2단계: 전환 중 */
+.full-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease-in;
+  z-index: 2;
+}
+
+.full-image.transitioning {
+  opacity: 0.5; /* 50% 전환 상태 */
+}
+
+.full-image.loaded {
+  opacity: 1;
+}
+
+/* 실제 데모 섹션 */
+.demo-instruction {
+  background-color: #d1ecf1;
+  border-left: 4px solid #17a2b8;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  color: #0c5460;
+}
+
+.demo-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #7f8c8d;
+}
+
+.demo-container {
+  background: #f8f9fa;
+  padding: 30px;
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+}
+
+/* 실제 동작 데모 이미지 컨테이너 */
+.image-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 20px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: #e9ecef;
+  border-radius: 8px;
+}
+
+.image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(10px);
+  transform: scale(1.1);
+  transition: opacity 2s ease-out; /* 2초로 늘림 */
+  z-index: 1;
+}
+
+.image-full {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 3s ease-in; /* 3초로 늘림 - 캡처하기 쉽게 */
+  z-index: 2;
+}
+
+.image-full.loaded {
+  opacity: 1;
+}
+
+/* 로딩 정보 */
+.loading-info {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#loading-status {
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.progress-bar {
+  width: 100%;
+  max-width: 400px;
+  height: 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  width: 0;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+/* 코드 설명 섹션 */
+details {
+  margin-bottom: 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+summary {
+  padding: 15px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+summary:hover {
+  background-color: #e9ecef;
+}
+
+details[open] summary {
+  background-color: #e9ecef;
+  border-bottom: 1px solid #dee2e6;
+}
+
+pre {
+  margin: 0;
+  padding: 20px;
+  background-color: #282c34;
+  overflow-x: auto;
+}
+
+code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: #abb2bf;
+  line-height: 1.5;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  .stage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 1.5em;
+  }
+
+  h2 {
+    font-size: 1.3em;
+  }
+}

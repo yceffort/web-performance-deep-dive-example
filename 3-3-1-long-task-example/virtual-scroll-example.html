@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>가상 스크롤 최적화 예제 - 3-3-1</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          sans-serif;
+        padding: 40px;
+        background: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .description {
+        color: #666;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+
+      .instructions {
+        background: #fffbeb;
+        border: 1px solid #fbbf24;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+
+      .instructions h3 {
+        color: #92400e;
+        margin-bottom: 10px;
+      }
+
+      .instructions ol {
+        margin-left: 20px;
+        color: #78350f;
+        line-height: 1.8;
+      }
+
+      .instructions code {
+        background: #fef3c7;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+      }
+
+      .comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .example-box {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 20px;
+        background: #f9fafb;
+      }
+
+      .example-box.bad {
+        border-color: #ef4444;
+      }
+
+      .example-box.good {
+        border-color: #10b981;
+      }
+
+      .example-box h2 {
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+
+      .example-box.bad h2 {
+        color: #dc2626;
+      }
+
+      .example-box.good h2 {
+        color: #059669;
+      }
+
+      .example-box p {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 15px;
+        line-height: 1.6;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+
+      .btn-success {
+        background: #10b981;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #059669;
+      }
+
+      .btn-primary {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #2563eb;
+      }
+
+      .result {
+        margin-top: 10px;
+        padding: 12px;
+        background: white;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+
+      .result.error {
+        border-left: 4px solid #ef4444;
+        background: #fef2f2;
+      }
+
+      .result.success {
+        border-left: 4px solid #10b981;
+        background: #f0fdf4;
+      }
+
+      .list-container {
+        height: 400px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: white;
+        overflow: auto;
+        margin-top: 15px;
+        position: relative;
+      }
+
+      .list-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 14px;
+      }
+
+      .list-item:hover {
+        background: #f9fafb;
+      }
+
+      .time {
+        font-weight: 700;
+        color: #3b82f6;
+      }
+
+      .time.long-task {
+        color: #ef4444;
+      }
+
+      /* 가상 스크롤용 스타일 */
+      .virtual-scroll-container {
+        height: 400px;
+        overflow: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-top: 15px;
+        position: relative;
+      }
+
+      .virtual-scroll-content {
+        position: relative;
+      }
+
+      .virtual-item {
+        position: absolute;
+        left: 0;
+        right: 0;
+        padding: 10px 15px;
+        border-bottom: 1px solid #f3f4f6;
+        background: white;
+      }
+
+      @media (max-width: 1024px) {
+        .comparison {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>⚡ 가상 스크롤 최적화 예제</h1>
+      <p class="description">
+        이 페이지는 3-3-1절 "Performance 탭에서 Long Task 찾기"의 가상 스크롤
+        최적화를 위한 실습 예제입니다.<br />
+        일반 렌더링과 가상 스크롤의 성능 차이를 Performance 탭에서 비교할 수
+        있습니다.
+      </p>
+
+      <div class="instructions">
+        <h3>📸 Performance 탭 캡쳐 방법</h3>
+        <ol>
+          <li>Chrome DevTools를 엽니다 (F12 또는 Cmd+Option+I)</li>
+          <li><code>Performance</code> 탭을 선택합니다</li>
+          <li>녹화 버튼(⚫️)을 클릭하거나 Cmd+E를 누릅니다</li>
+          <li>
+            아래 <strong>빨간 버튼</strong> 또는
+            <strong>초록 버튼</strong>을 클릭합니다
+          </li>
+          <li>1-2초 후 녹화를 정지합니다</li>
+          <li>Main 트랙에서 Long Task 유무를 비교합니다</li>
+        </ol>
+      </div>
+
+      <div class="comparison">
+        <!-- Bad: 일반 렌더링 -->
+        <div class="example-box bad">
+          <h2>🔴 Bad: 일반 렌더링 (Long Task 발생)</h2>
+          <p>
+            10,000개 아이템을 한 번에 렌더링합니다. DOM에 모든 요소가 추가되어
+            Long Task가 발생하고 메인 스레드가 블로킹됩니다.
+          </p>
+          <div class="buttons">
+            <button class="btn-danger" onclick="loadBadExample()">
+              🔴 10,000개 렌더링
+            </button>
+            <button class="btn-primary" onclick="clearBadExample()">
+              🗑️ 초기화
+            </button>
+          </div>
+          <div id="bad-result"></div>
+          <div id="bad-list" class="list-container" style="display: none"></div>
+        </div>
+
+        <!-- Good: 가상 스크롤 -->
+        <div class="example-box good">
+          <h2>✅ Good: 가상 스크롤 (Long Task 없음)</h2>
+          <p>
+            가상 스크롤을 사용하여 화면에 보이는 아이템만 렌더링합니다. 10,000개
+            데이터지만 초기 렌더링은 30-50ms 이하로 완료됩니다.
+          </p>
+          <div class="buttons">
+            <button class="btn-success" onclick="loadGoodExample()">
+              ✅ 10,000개 렌더링 (최적화)
+            </button>
+            <button class="btn-primary" onclick="clearGoodExample()">
+              🗑️ 초기화
+            </button>
+          </div>
+          <div id="good-result"></div>
+          <div
+            id="good-list"
+            class="virtual-scroll-container"
+            style="display: none"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 10,000개 가짜 데이터 생성
+      const generateItems = (count) =>
+        Array.from({ length: count }, (_, i) => ({
+          id: i,
+          text: `아이템 ${i + 1}`,
+          description: `이것은 ${i + 1}번째 아이템입니다. 가상 스크롤 테스트용 데이터입니다.`,
+        }))
+
+      // ============================================
+      // Bad 예제: 일반 렌더링 (Long Task 발생)
+      // ============================================
+      function loadBadExample() {
+        const startTime = performance.now()
+        const container = document.getElementById('bad-list')
+        const resultDiv = document.getElementById('bad-result')
+
+        container.innerHTML = ''
+        container.style.display = 'block'
+
+        const items = generateItems(10000)
+
+        // Long Task 발생: 10,000개 모두 DOM에 추가
+        let html = ''
+        items.forEach((item) => {
+          html += `
+            <div class="list-item">
+              <strong>${item.text}</strong>
+              <div style="font-size: 12px; color: #666;">${item.description}</div>
+            </div>
+          `
+        })
+        container.innerHTML = html
+
+        const duration = performance.now() - startTime
+
+        resultDiv.className = `result ${duration > 50 ? 'error' : 'success'}`
+        resultDiv.innerHTML = `
+          <strong>렌더링 완료</strong><br>
+          소요 시간: <span class="time ${duration > 50 ? 'long-task' : ''}">${duration.toFixed(2)}ms</span><br>
+          ${duration > 50 ? '⚠️ Long Task 발생! Performance 탭에서 빨간색 삼각형 확인' : '✅ 정상 작업'}
+        `
+      }
+
+      function clearBadExample() {
+        document.getElementById('bad-list').style.display = 'none'
+        document.getElementById('bad-list').innerHTML = ''
+        document.getElementById('bad-result').innerHTML = ''
+      }
+
+      // ============================================
+      // Good 예제: 가상 스크롤 (Long Task 없음)
+      // ============================================
+      const ITEM_HEIGHT = 60
+      const VISIBLE_ITEMS = Math.ceil(400 / ITEM_HEIGHT) + 2 // 버퍼 포함
+
+      function loadGoodExample() {
+        const startTime = performance.now()
+        const container = document.getElementById('good-list')
+        const resultDiv = document.getElementById('good-result')
+
+        container.innerHTML = ''
+        container.style.display = 'block'
+
+        const items = generateItems(10000)
+
+        // 가상 스크롤 구현
+        const content = document.createElement('div')
+        content.className = 'virtual-scroll-content'
+        content.style.height = `${items.length * ITEM_HEIGHT}px`
+        container.appendChild(content)
+
+        let visibleItems = []
+
+        function renderVisibleItems() {
+          const scrollTop = container.scrollTop
+          const startIndex = Math.floor(scrollTop / ITEM_HEIGHT)
+          const endIndex = Math.min(startIndex + VISIBLE_ITEMS, items.length)
+
+          // 기존 아이템 제거
+          visibleItems.forEach((item) => item.element.remove())
+          visibleItems = []
+
+          // 보이는 아이템만 렌더링
+          for (let i = startIndex; i < endIndex; i++) {
+            const item = items[i]
+            const element = document.createElement('div')
+            element.className = 'virtual-item'
+            element.style.top = `${i * ITEM_HEIGHT}px`
+            element.style.height = `${ITEM_HEIGHT}px`
+            element.innerHTML = `
+              <strong>${item.text}</strong>
+              <div style="font-size: 12px; color: #666;">${item.description}</div>
+            `
+            content.appendChild(element)
+            visibleItems.push({ item, element })
+          }
+        }
+
+        // 초기 렌더링
+        renderVisibleItems()
+
+        // 스크롤 이벤트
+        container.addEventListener('scroll', renderVisibleItems)
+
+        const duration = performance.now() - startTime
+
+        resultDiv.className = 'result success'
+        resultDiv.innerHTML = `
+          <strong>렌더링 완료 (가상 스크롤)</strong><br>
+          소요 시간: <span class="time">${duration.toFixed(2)}ms</span><br>
+          ✅ Long Task 없음! 화면에 보이는 ${VISIBLE_ITEMS}개만 렌더링<br>
+          <small style="color: #666;">스크롤해도 각 업데이트는 10ms 이하로 유지됩니다.</small>
+        `
+      }
+
+      function clearGoodExample() {
+        document.getElementById('good-list').style.display = 'none'
+        document.getElementById('good-list').innerHTML = ''
+        document.getElementById('good-result').innerHTML = ''
+      }
+    </script>
+  </body>
+</html>

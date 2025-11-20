@@ -1,0 +1,24 @@
+{
+  "name": "responsive-images-example",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "2-5-2절 반응형 이미지 실습 예제",
+  "scripts": {
+    "download": "node download-images.js",
+    "generate": "node generate-images.js",
+    "serve": "npx serve .",
+    "setup": "node download-images.js && open index.html"
+  },
+  "keywords": [
+    "responsive-images",
+    "srcset",
+    "sizes",
+    "picture",
+    "web-performance"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

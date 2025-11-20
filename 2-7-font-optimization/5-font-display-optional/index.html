@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>font-display: optional 예제</title>
+    <style>
+      @font-face {
+        font-family: 'OptionalFont';
+        src: url('/fonts/optional-font-slow.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: optional; /* 100ms 안에 로드 안되면 포기 */
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          'OptionalFont',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Arial,
+          sans-serif;
+        font-size: 20px;
+        padding: 40px;
+        line-height: 1.6;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .info-box {
+        background: #d4edda;
+        border: 2px solid #28a745;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+      }
+
+      .info-box h2 {
+        margin-bottom: 10px;
+        color: #155724;
+      }
+
+      .info-box p {
+        color: #155724;
+        margin-bottom: 10px;
+      }
+
+      .info-box.slow {
+        background: #fff3cd;
+        border-color: #ffc107;
+      }
+
+      .info-box.slow h2,
+      .info-box.slow p {
+        color: #856404;
+      }
+
+      .content {
+        background: white;
+        padding: 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #2c3e50;
+      }
+
+      .description {
+        background: #e8f4f8;
+        padding: 15px;
+        margin: 20px 0;
+        border-left: 4px solid #3498db;
+      }
+
+      .status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #fff;
+        padding: 15px 20px;
+        border: 2px solid #333;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        min-width: 300px;
+        z-index: 1000;
+      }
+
+      .status h3 {
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+
+      .status .metric {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+        font-size: 14px;
+      }
+
+      .status .metric strong {
+        color: #e74c3c;
+      }
+
+      .status .metric.good strong {
+        color: #27ae60;
+      }
+
+      .controls {
+        margin: 30px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .controls h3 {
+        margin-bottom: 15px;
+      }
+
+      .controls button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s;
+      }
+
+      .controls button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .controls button.fast {
+        background: #27ae60;
+        color: white;
+      }
+
+      .controls button.slow {
+        background: #f39c12;
+        color: white;
+      }
+
+      .timeline {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .timeline-events {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+        background: white;
+        border-radius: 4px;
+      }
+
+      .timeline-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+        font-size: 13px;
+      }
+
+      .timeline-item:last-child {
+        border-bottom: none;
+      }
+
+      .timeline-item .time {
+        font-weight: bold;
+        color: #3498db;
+      }
+
+      .timeline-item.important {
+        color: #e74c3c;
+        font-weight: bold;
+      }
+
+      .timeline-item.success {
+        color: #27ae60;
+        font-weight: bold;
+      }
+
+      .comparison-box {
+        margin-top: 30px;
+        padding: 20px;
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 8px;
+      }
+
+      .comparison-box h3 {
+        color: #856404;
+        margin-bottom: 15px;
+      }
+
+      .comparison-box table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+      }
+
+      .comparison-box th,
+      .comparison-box td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+      }
+
+      .comparison-box th {
+        background: #f8f9fa;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="info-box" id="info-box">
+      <h2>🎯 font-display: optional 전략</h2>
+      <p id="info-text">
+        <strong
+          >현재 모드: 느린 폰트 (200ms 지연) - optional은 포기하고 폴백 폰트
+          사용</strong
+        >
+      </p>
+      <p>
+        font-display: optional은 약 100ms의 짧은 block period 동안만 폰트를
+        기다립니다.
+      </p>
+      <p>
+        100ms 안에 폰트가 로드되지 않으면 폴백 폰트를 사용하며, 이후 폰트가
+        도착해도 절대 교체하지 않습니다.
+      </p>
+    </div>
+
+    <div class="status" id="status">
+      <h3>📊 성능 지표</h3>
+      <div class="metric">
+        <span>폰트 상태:</span>
+        <strong id="font-status">확인 중...</strong>
+      </div>
+      <div class="metric">
+        <span>로드 시간:</span>
+        <strong id="load-time">-</strong>
+      </div>
+      <div class="metric">
+        <span>100ms 이내?</span>
+        <strong id="within-100ms">-</strong>
+      </div>
+      <div class="metric good">
+        <span>누적 CLS:</span>
+        <strong id="cls-score">0</strong>
+      </div>
+      <div class="metric">
+        <span>Layout Shifts:</span>
+        <strong id="shift-count">0</strong>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1>font-display: optional 테스트</h1>
+
+      <div class="description">
+        <p>
+          <strong>optional의 특징:</strong> "레이아웃 시프트를 절대 발생시키지
+          않는다"는 전략입니다. 100ms 안에 폰트가 도착하지 않으면 폴백 폰트를
+          사용하며 이후 절대 교체하지 않습니다. 따라서 FOUT가 발생하지 않고 CLS도
+          발생하지 않습니다.
+        </p>
+      </div>
+
+      <p>
+        현재 이 페이지는 폰트를 200ms 지연으로 제공하고 있습니다. 이는 optional의
+        100ms block period를 초과하므로, 브라우저는 폰트 다운로드를 포기하고
+        시스템 폰트를 사용합니다.
+      </p>
+
+      <p>
+        이 텍스트는 OptionalFont로 정의되어 있지만, 실제로는 시스템 폰트
+        (Arial, -apple-system 등)로 렌더링될 가능성이 높습니다. 폰트가 나중에
+        도착해도 교체되지 않습니다.
+      </p>
+
+      <h2>장점</h2>
+
+      <p>
+        <strong>CLS 완전 차단:</strong> 폰트 교체가 절대 일어나지 않으므로 폰트
+        로딩으로 인한 레이아웃 시프트가 발생하지 않습니다. 핵심 웹 지표에서 CLS
+        점수 0.1 이하가 "좋음"으로 평가되는데, optional을 사용하면 폰트 관련
+        CLS를 완전히 차단할 수 있습니다.
+      </p>
+
+      <p>
+        <strong>대역폭 절약:</strong> 느린 네트워크에서 폰트 다운로드를 포기하여
+        불필요한 대역폭 사용을 줄입니다.
+      </p>
+
+      <h2>단점</h2>
+
+      <p>
+        <strong>일관성 없는 디자인:</strong> 느린 네트워크에서는 웹 폰트가 전혀
+        적용되지 않습니다. 빠른 연결에서는 브랜드 폰트를 보고, 느린 연결에서는
+        시스템 폰트를 보는 상황이 발생합니다.
+      </p>
+
+      <div class="controls">
+        <h3>🧪 다른 모드로 테스트해보기</h3>
+        <p style="font-size: 14px; color: #666; margin-bottom: 15px">
+          페이지를 새로고침하여 다른 폰트 로딩 속도를 테스트할 수 있습니다.
+        </p>
+        <button class="fast" onclick="location.href='/?mode=fast'">
+          빠른 폰트 모드 (50ms) - optional 적용
+        </button>
+        <button class="slow" onclick="location.href='/?mode=slow'">
+          느린 폰트 모드 (200ms) - optional 포기
+        </button>
+      </div>
+
+      <div class="comparison-box">
+        <h3>📊 swap vs optional 비교</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>항목</th>
+              <th>font-display: swap</th>
+              <th>font-display: optional</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Block period</td>
+              <td>0 (즉시 폴백 표시)</td>
+              <td>~100ms</td>
+            </tr>
+            <tr>
+              <td>Swap period</td>
+              <td>무한 (항상 교체)</td>
+              <td>0 (절대 교체 안함)</td>
+            </tr>
+            <tr>
+              <td>FOUT 발생</td>
+              <td>예</td>
+              <td>아니오</td>
+            </tr>
+            <tr>
+              <td>CLS 위험</td>
+              <td>있음</td>
+              <td>없음</td>
+            </tr>
+            <tr>
+              <td>느린 네트워크</td>
+              <td>웹 폰트 확실히 적용</td>
+              <td>시스템 폰트 사용</td>
+            </tr>
+            <tr>
+              <td>적합한 용도</td>
+              <td>브랜드 일관성 중요</td>
+              <td>성능 최우선, CLS 차단</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="timeline">
+        <h3>📝 이벤트 타임라인</h3>
+        <div class="timeline-events" id="timeline"></div>
+      </div>
+    </div>
+
+    <script>
+      const startTime = performance.now()
+      const timelineEvents = []
+      let clsScore = 0
+      let shiftCount = 0
+
+      // URL 파라미터 확인
+      const urlParams = new URLSearchParams(window.location.search)
+      const mode = urlParams.get('mode') || 'slow'
+
+      // 모드에 따라 폰트 URL 변경
+      if (mode === 'fast') {
+        // CSS를 동적으로 수정하여 빠른 폰트 사용
+        const style = document.createElement('style')
+        style.textContent = `
+          @font-face {
+            font-family: 'OptionalFont';
+            src: url('/fonts/optional-font-fast.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+            font-display: optional;
+          }
+        `
+        document.head.appendChild(style)
+
+        document.getElementById('info-box').classList.remove('slow')
+        document.getElementById('info-text').innerHTML =
+          '<strong>현재 모드: 빠른 폰트 (50ms) - optional이 적용될 수 있음</strong>'
+      }
+
+      function addTimelineEvent(message, type = 'normal') {
+        const elapsed = Math.round(performance.now() - startTime)
+        timelineEvents.push({ time: elapsed, message, type })
+        updateTimeline()
+      }
+
+      function updateTimeline() {
+        const container = document.getElementById('timeline')
+        container.innerHTML = timelineEvents
+          .map(
+            (event) =>
+              `<div class="timeline-item ${event.type}">
+                <span class="time">${event.time}ms:</span> ${event.message}
+              </div>`,
+          )
+          .join('')
+        container.scrollTop = container.scrollHeight
+      }
+
+      addTimelineEvent(`페이지 로드 시작 (모드: ${mode})`)
+
+      // CLS 측정
+      const clsObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (!entry.hadRecentInput) {
+            clsScore += entry.value
+            shiftCount++
+
+            document.getElementById('cls-score').textContent =
+              clsScore.toFixed(4)
+            document.getElementById('shift-count').textContent = shiftCount
+
+            addTimelineEvent(
+              `⚠️ Layout Shift 발생! 값: ${entry.value.toFixed(4)}`,
+              'important',
+            )
+          }
+        }
+      })
+      clsObserver.observe({ type: 'layout-shift', buffered: true })
+
+      // 폰트 로딩 상태 확인
+      const fontCheckStart = performance.now()
+      let fontApplied = false
+      let checkCount = 0
+
+      function checkFontLoaded() {
+        checkCount++
+        const elapsed = Math.round(performance.now() - fontCheckStart)
+
+        if (document.fonts.check('20px OptionalFont')) {
+          if (!fontApplied) {
+            fontApplied = true
+            const loadTime = Math.round(performance.now() - startTime)
+
+            document.getElementById('font-status').textContent =
+              'OptionalFont 적용됨'
+            document.getElementById('font-status').style.color = '#27ae60'
+            document.getElementById('load-time').textContent = `${loadTime}ms`
+
+            if (loadTime <= 100) {
+              document.getElementById('within-100ms').textContent = '✓ 예'
+              document.getElementById('within-100ms').style.color = '#27ae60'
+              addTimelineEvent(
+                `✓ OptionalFont 로드 완료: ${loadTime}ms (100ms 이내)`,
+                'success',
+              )
+            } else {
+              document.getElementById('within-100ms').textContent = '✗ 아니오'
+              addTimelineEvent(
+                `✓ OptionalFont 로드 완료: ${loadTime}ms (하지만 100ms 초과)`,
+              )
+            }
+          }
+          return
+        }
+
+        // 100ms 체크포인트
+        if (elapsed > 100 && elapsed < 110 && !fontApplied) {
+          document.getElementById('font-status').textContent =
+            '시스템 폰트 사용 (100ms 초과)'
+          document.getElementById('font-status').style.color = '#f39c12'
+          document.getElementById('within-100ms').textContent = '✗ 아니오'
+          addTimelineEvent(
+            '⏳ 100ms 초과: optional이 폰트 로드를 포기하고 시스템 폰트 사용',
+            'important',
+          )
+        }
+
+        if (checkCount < 100) {
+          setTimeout(checkFontLoaded, 50)
+        }
+      }
+
+      document.fonts.ready.then(() => {
+        const elapsed = Math.round(performance.now() - startTime)
+        addTimelineEvent(`document.fonts.ready: ${elapsed}ms`)
+        checkFontLoaded()
+      })
+
+      checkFontLoaded()
+
+      // 5초 후 최종 요약
+      setTimeout(() => {
+        addTimelineEvent('=== 측정 완료 ===')
+
+        if (clsScore === 0) {
+          addTimelineEvent('✓ CLS 없음! optional이 레이아웃 시프트를 방지했습니다.', 'success')
+        } else {
+          addTimelineEvent(
+            `⚠️ CLS 발생: ${clsScore.toFixed(4)} (예상치 못한 결과)`,
+            'important',
+          )
+        }
+
+        if (fontApplied) {
+          addTimelineEvent(
+            '결론: 폰트가 100ms 이내에 로드되어 OptionalFont가 적용되었습니다.',
+          )
+        } else {
+          addTimelineEvent(
+            '결론: 폰트가 100ms 이내에 로드되지 않아 시스템 폰트를 사용합니다. 이후 폰트가 도착해도 교체되지 않습니다.',
+          )
+        }
+      }, 5000)
+    </script>
+  </body>
+</html>

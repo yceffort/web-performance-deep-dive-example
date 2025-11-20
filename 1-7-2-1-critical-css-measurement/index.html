@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Critical CSS 크기 측정 - 모바일 vs 데스크톱</title>
+
+    <!-- 모바일용 Critical CSS (3-4KB 목표) -->
+    <style data-critical="mobile">
+      /* 리셋 */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 1rem;
+      }
+
+      .container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 헤더 */
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem 1rem;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+      }
+
+      /* 메인 */
+      main {
+        padding: 1rem;
+      }
+
+      .device-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: #667eea;
+        color: white;
+        border-radius: 6px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+
+      .section {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #667eea;
+      }
+
+      .section h2 {
+        color: #667eea;
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+      }
+
+      /* 버튼 */
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin: 1.5rem 0;
+      }
+
+      button {
+        padding: 0.875rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+
+      .btn-info {
+        background: #17a2b8;
+        color: white;
+      }
+
+      /* 결과 */
+      #result {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 6px;
+        border: 2px solid #e9ecef;
+      }
+
+      .metric {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+      }
+
+      .metric-label {
+        font-weight: 600;
+        color: #333;
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+
+      .metric-value {
+        font-family: 'Courier New', monospace;
+        color: #667eea;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+    </style>
+
+    <!-- 데스크톱용 Critical CSS (추가 스타일, 합쳐서 7-8KB 목표) -->
+    <style data-critical="desktop">
+      /* 데스크톱 전용 스타일 */
+      body {
+        padding: 2rem;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+      }
+
+      main {
+        padding: 2rem;
+      }
+
+      .device-badge {
+        padding: 0.75rem 1.5rem;
+        font-size: 1.1rem;
+      }
+
+      .section {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .section h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .section p {
+        margin-bottom: 0.5rem;
+        color: #555;
+        font-size: 1rem;
+      }
+
+      /* 버튼 그리드 */
+      .button-group {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 2rem 0;
+      }
+
+      button {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        min-height: 60px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+      }
+
+      /* 결과 표시 개선 */
+      #result {
+        padding: 1.5rem;
+        margin-top: 2rem;
+      }
+
+      #result h3 {
+        color: #667eea;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+      }
+
+      .metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+      }
+
+      .metric-label {
+        display: inline;
+        margin-bottom: 0;
+      }
+
+      /* 프로그레스 바 */
+      .progress-container {
+        margin: 1rem 0;
+        background: #e9ecef;
+        border-radius: 8px;
+        height: 30px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          #28a745 0%,
+          #ffc107 70%,
+          #dc3545 100%
+        );
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .threshold-marker {
+        position: absolute;
+        top: 0;
+        left: 70%;
+        width: 2px;
+        height: 100%;
+        background: #dc3545;
+      }
+
+      .threshold-label {
+        position: absolute;
+        top: -25px;
+        left: 70%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        color: #dc3545;
+        font-weight: 600;
+      }
+
+      .status {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        margin-top: 1rem;
+        display: inline-block;
+      }
+
+      .status.optimal {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status.warning {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status.danger {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      /* 코드 블록 */
+      pre {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+      }
+
+      code {
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      /* 히어로 섹션 */
+      .hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: -2rem -2rem 2rem -2rem;
+        border-radius: 12px 12px 0 0;
+      }
+
+      .hero h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      /* 비교 테이블 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .comparison-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #667eea;
+      }
+
+      .comparison-table tr:hover {
+        background: #f8f9fa;
+      }
+    </style>
+
+    <script>
+      // 현재 디바이스 감지 및 적절한 Critical CSS 활성화
+      function detectDevice() {
+        return window.innerWidth <= 768 ? 'mobile' : 'desktop'
+      }
+
+      // 페이지 로드 시 디바이스별 스타일 활성화
+      function initializeCriticalCSS() {
+        const device = detectDevice()
+        const mobileCSS = document.querySelector('style[data-critical="mobile"]')
+        const desktopCSS = document.querySelector(
+          'style[data-critical="desktop"]',
+        )
+
+        if (device === 'mobile') {
+          mobileCSS.disabled = false
+          if (desktopCSS) desktopCSS.disabled = true
+        } else {
+          mobileCSS.disabled = false
+          if (desktopCSS) desktopCSS.disabled = false
+        }
+
+        console.log(`🎯 감지된 디바이스: ${device === 'mobile' ? '📱 모바일' : '💻 데스크톱'}`)
+        console.log(`활성화된 Critical CSS: ${device}`)
+      }
+
+      // 초기화
+      initializeCriticalCSS()
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📊 Critical CSS 크기 측정</h1>
+        <p class="subtitle">모바일 vs 데스크톱 비교</p>
+      </header>
+
+      <main>
+        <div id="device-info">
+          <!-- JavaScript로 동적 생성 -->
+        </div>
+
+        <div class="hero" style="display: none" id="desktop-hero">
+          <h2>모바일과 데스크톱, 다른 전략</h2>
+          <p>
+            모바일은 뷰포트가 작아 3-6KB면 충분하지만, 데스크톱은 더 많은
+            콘텐츠가 보여 10-12KB가 필요합니다. 이 데모에서는 실제로 두 가지
+            크기를 비교할 수 있습니다.
+          </p>
+        </div>
+
+        <div class="section">
+          <h2>📋 현재 디바이스</h2>
+          <p id="current-device-info">로딩 중...</p>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-primary" onclick="measureCurrentDevice()">
+            📏 현재 디바이스 측정
+          </button>
+          <button class="btn-info" onclick="compareAllDevices()">
+            📊 모바일 vs 데스크톱 비교
+          </button>
+          <button class="btn-secondary" onclick="showCSSContent()">
+            👁️ CSS 내용 보기
+          </button>
+          <button class="btn-success" onclick="copyToClipboard()">
+            📋 측정 코드 복사
+          </button>
+        </div>
+
+        <div id="result"></div>
+
+        <div class="section">
+          <h2>💡 14KB 임계값</h2>
+          <p>
+            TCP 초기 혼잡 윈도우(IW) 10 패킷 × 1460바이트 = 14,600바이트
+            (≈14.26KB)
+          </p>
+          <ul style="list-style: none; padding-left: 0; margin-top: 0.5rem">
+            <li style="margin-bottom: 0.5rem">
+              ✅ <strong>최적 (0-14KB):</strong> 첫 RTT에서 전송 가능
+            </li>
+            <li style="margin-bottom: 0.5rem">
+              ⚠️ <strong>주의 (14-20KB):</strong> 추가 RTT 발생
+            </li>
+            <li style="margin-bottom: 0.5rem">
+              ❌ <strong>위험 (20KB+):</strong> 즉시 최적화 필요
+            </li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h2>🎯 실무 가이드</h2>
+          <p><strong>모바일 우선 접근:</strong></p>
+          <ul style="padding-left: 1.5rem; margin-top: 0.5rem">
+            <li>모바일용: 3-6KB (Above-the-fold 최소)</li>
+            <li>데스크톱용: 8-12KB (더 많은 콘텐츠)</li>
+            <li>통합 접근: 5-8KB (공통 부분집합)</li>
+          </ul>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // 디바이스 정보 표시
+      function updateDeviceInfo() {
+        const device = detectDevice()
+        const deviceIcon = device === 'mobile' ? '📱' : '💻'
+        const deviceName = device === 'mobile' ? '모바일' : '데스크톱'
+        const viewportWidth = window.innerWidth
+        const viewportHeight = window.innerHeight
+
+        document.getElementById('device-info').innerHTML = `
+          <div class="device-badge">${deviceIcon} ${deviceName} 디바이스</div>
+        `
+
+        document.getElementById('current-device-info').innerHTML = `
+          <strong>${deviceIcon} ${deviceName}</strong> - 뷰포트: ${viewportWidth}×${viewportHeight}px
+        `
+
+        // 데스크톱에서만 히어로 섹션 표시
+        const hero = document.getElementById('desktop-hero')
+        if (hero) {
+          hero.style.display = device === 'desktop' ? 'block' : 'none'
+        }
+      }
+
+      // 특정 디바이스의 Critical CSS 크기 측정
+      function measureDevice(deviceType) {
+        const criticalStyles = document.querySelector(
+          `style[data-critical="${deviceType}"]`,
+        )
+
+        if (!criticalStyles) {
+          return null
+        }
+
+        const cssContent = criticalStyles.textContent
+        const sizeInBytes = new Blob([cssContent]).size
+        const sizeInKB = (sizeInBytes / 1024).toFixed(2)
+        const threshold = 14336
+        const percentage = ((sizeInBytes / threshold) * 100).toFixed(1)
+
+        let status = 'optimal'
+        let statusText = '✅ 최적'
+        let recommendation = '현재 Critical CSS 크기가 최적입니다!'
+
+        if (sizeInBytes > threshold) {
+          const excess = ((sizeInBytes - threshold) / 1024).toFixed(2)
+          status = 'danger'
+          statusText = '❌ 임계값 초과'
+          recommendation = `${excess}KB를 줄여야 합니다.`
+        } else if (sizeInBytes > threshold * 0.9) {
+          status = 'warning'
+          statusText = '⚠️ 주의'
+          recommendation = `임계값에 근접했습니다 (${percentage}%).`
+        }
+
+        return {
+          deviceType,
+          sizeInBytes,
+          sizeInKB,
+          threshold,
+          percentage,
+          status,
+          statusText,
+          recommendation,
+          cssContent,
+        }
+      }
+
+      // 현재 디바이스만 측정
+      function measureCurrentDevice() {
+        const device = detectDevice()
+        const data = measureDevice(device)
+
+        if (!data) {
+          showResult({
+            error: `${device} Critical CSS를 찾을 수 없습니다.`,
+          })
+          return
+        }
+
+        showSingleResult(data)
+      }
+
+      // 모든 디바이스 비교
+      function compareAllDevices() {
+        const mobileData = measureDevice('mobile')
+        const desktopData = measureDevice('desktop')
+
+        if (!mobileData || !desktopData) {
+          showResult({
+            error: 'Critical CSS를 찾을 수 없습니다.',
+          })
+          return
+        }
+
+        showComparisonResult(mobileData, desktopData)
+      }
+
+      // 단일 결과 표시
+      function showSingleResult(data) {
+        const deviceIcon = data.deviceType === 'mobile' ? '📱' : '💻'
+        const deviceName = data.deviceType === 'mobile' ? '모바일' : '데스크톱'
+
+        const resultDiv = document.getElementById('result')
+        resultDiv.innerHTML = `
+          <h3>📊 ${deviceIcon} ${deviceName} Critical CSS 측정 결과</h3>
+
+          <div class="metric">
+            <span class="metric-label">파일 크기 (바이트)</span>
+            <span class="metric-value">${data.sizeInBytes.toLocaleString()} bytes</span>
+          </div>
+
+          <div class="metric">
+            <span class="metric-label">파일 크기 (KB)</span>
+            <span class="metric-value">${data.sizeInKB} KB</span>
+          </div>
+
+          <div class="metric">
+            <span class="metric-label">14KB 대비 비율</span>
+            <span class="metric-value">${data.percentage}%</span>
+          </div>
+
+          <div class="progress-container" style="position: relative; margin-top: 1rem;">
+            <div class="threshold-label">14KB</div>
+            <div class="threshold-marker"></div>
+            <div class="progress-bar" style="width: ${Math.min(data.percentage, 100)}%">
+              ${data.sizeInKB} KB
+            </div>
+          </div>
+
+          <div class="status ${data.status}">
+            ${data.statusText}: ${data.recommendation}
+          </div>
+
+          <details style="margin-top: 1rem;">
+            <summary style="cursor: pointer; font-weight: 600; padding: 0.5rem; background: #f8f9fa; border-radius: 6px;">
+              🔍 상세 분석
+            </summary>
+            <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 6px;">
+              <p><strong>임계값:</strong> ${(data.threshold / 1024).toFixed(2)} KB</p>
+              <p><strong>남은 여유:</strong> ${((data.threshold - data.sizeInBytes) / 1024).toFixed(2)} KB</p>
+              <p><strong>CSS 줄 수:</strong> ${data.cssContent.split('\n').length} lines</p>
+              <p><strong>압축 예상:</strong> 약 ${(data.sizeInKB / 2).toFixed(2)}KB (Gzip)</p>
+            </div>
+          </details>
+        `
+
+        console.log(`📊 ${deviceName} Critical CSS 측정 결과`)
+        console.log(`크기: ${data.sizeInKB} KB (${data.sizeInBytes} bytes)`)
+        console.log(`14KB 대비: ${data.percentage}%`)
+        console.log(`상태: ${data.statusText}`)
+      }
+
+      // 비교 결과 표시
+      function showComparisonResult(mobileData, desktopData) {
+        const resultDiv = document.getElementById('result')
+
+        // 합계 계산
+        const totalBytes = mobileData.sizeInBytes + desktopData.sizeInBytes
+        const totalKB = (totalBytes / 1024).toFixed(2)
+        const totalPercentage = ((totalBytes / 14336) * 100).toFixed(1)
+
+        resultDiv.innerHTML = `
+          <h3>📊 모바일 vs 데스크톱 비교</h3>
+
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>항목</th>
+                <th>📱 모바일</th>
+                <th>💻 데스크톱</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>크기 (바이트)</strong></td>
+                <td>${mobileData.sizeInBytes.toLocaleString()}</td>
+                <td>${desktopData.sizeInBytes.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td><strong>크기 (KB)</strong></td>
+                <td><strong>${mobileData.sizeInKB} KB</strong></td>
+                <td><strong>${desktopData.sizeInKB} KB</strong></td>
+              </tr>
+              <tr>
+                <td><strong>14KB 대비</strong></td>
+                <td>${mobileData.percentage}%</td>
+                <td>${desktopData.percentage}%</td>
+              </tr>
+              <tr>
+                <td><strong>상태</strong></td>
+                <td>${mobileData.statusText}</td>
+                <td>${desktopData.statusText}</td>
+              </tr>
+              <tr>
+                <td><strong>CSS 줄 수</strong></td>
+                <td>${mobileData.cssContent.split('\n').length} lines</td>
+                <td>${desktopData.cssContent.split('\n').length} lines</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 6px;">
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">💡 분석 결과</h4>
+            <p><strong>통합 사용 시:</strong> ${totalKB} KB (${totalPercentage}%)</p>
+            <p><strong>데스크톱 증가량:</strong> ${(desktopData.sizeInKB - mobileData.sizeInKB).toFixed(2)} KB</p>
+            <p><strong>권장사항:</strong> ${totalBytes > 14336 ? '❌ 디바이스별로 분리하여 제공하세요' : '✅ 통합하여 사용해도 안전합니다'}</p>
+          </div>
+        `
+
+        console.log('📊 모바일 vs 데스크톱 비교')
+        console.log(`📱 모바일: ${mobileData.sizeInKB} KB`)
+        console.log(`💻 데스크톱: ${desktopData.sizeInKB} KB`)
+        console.log(`합계: ${totalKB} KB (${totalPercentage}%)`)
+      }
+
+      function showResult(data) {
+        if (data.error) {
+          document.getElementById('result').innerHTML = `
+            <h3>❌ 오류</h3>
+            <p style="color: #dc3545; font-weight: 600;">${data.error}</p>
+          `
+        }
+      }
+
+      function showCSSContent() {
+        const device = detectDevice()
+        const criticalStyles = document.querySelector(
+          `style[data-critical="${device}"]`,
+        )
+
+        if (!criticalStyles) {
+          alert('Critical CSS를 찾을 수 없습니다.')
+          return
+        }
+
+        const cssContent = criticalStyles.textContent
+        const deviceName = device === 'mobile' ? '모바일' : '데스크톱'
+
+        document.getElementById('result').innerHTML = `
+          <h3>👁️ ${deviceName} Critical CSS 내용</h3>
+          <pre><code>${escapeHtml(cssContent)}</code></pre>
+          <button class="btn-secondary" onclick="measureCurrentDevice()" style="margin-top: 1rem;">
+            ⬅️ 측정 결과로 돌아가기
+          </button>
+        `
+      }
+
+      function copyToClipboard() {
+        const code = `// Critical CSS 크기 측정 (디바이스별)
+function measureCriticalCSSByDevice() {
+  const device = window.innerWidth <= 768 ? 'mobile' : 'desktop'
+  const criticalStyles = document.querySelector(\`style[data-critical="\${device}"]\`)
+
+  if (!criticalStyles) {
+    console.log('Critical CSS not found')
+    return
+  }
+
+  const cssContent = criticalStyles.textContent
+  const sizeInBytes = new Blob([cssContent]).size
+  const sizeInKB = (sizeInBytes / 1024).toFixed(2)
+
+  console.log(\`📊 \${device === 'mobile' ? '📱 모바일' : '💻 데스크톱'} Critical CSS\`)
+  console.log(\`크기: \${sizeInKB} KB (\${sizeInBytes} bytes)\`)
+
+  if (sizeInBytes > 14336) {
+    console.warn('⚠️ Critical CSS exceeds 14KB threshold')
+  } else {
+    console.log('✅ Critical CSS size is optimal')
+  }
+
+  return { device, sizeInBytes, sizeInKB }
+}
+
+// 사용 예시
+measureCriticalCSSByDevice()`
+
+        navigator.clipboard.writeText(code).then(() => {
+          document.getElementById('result').innerHTML = `
+            <h3>✅ 클립보드에 복사됨</h3>
+            <p style="color: #28a745; font-weight: 600; margin-bottom: 1rem;">
+              디바이스별 측정 코드가 복사되었습니다.
+            </p>
+            <pre><code>${escapeHtml(code)}</code></pre>
+          `
+        })
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div')
+        div.textContent = text
+        return div.innerHTML
+      }
+
+      // 초기화
+      window.addEventListener('DOMContentLoaded', () => {
+        updateDeviceInfo()
+        console.log('💡 페이지가 로드되었습니다.')
+        console.log('📏 버튼을 클릭하여 Critical CSS 크기를 측정하세요.')
+      })
+
+      // 리사이즈 이벤트
+      window.addEventListener('resize', () => {
+        const newDevice = detectDevice()
+        initializeCriticalCSS()
+        updateDeviceInfo()
+      })
+    </script>
+  </body>
+</html>

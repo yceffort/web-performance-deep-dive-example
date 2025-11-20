@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Long Task 캡쳐 예제 - 3-3-1</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          sans-serif;
+        padding: 40px;
+        background: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .description {
+        color: #666;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+
+      .section {
+        margin-bottom: 40px;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 6px;
+      }
+
+      .section h2 {
+        margin-bottom: 15px;
+        color: #444;
+        font-size: 18px;
+      }
+
+      .section p {
+        margin-bottom: 15px;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+      }
+
+      button {
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #2563eb;
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+
+      .btn-success {
+        background: #10b981;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #059669;
+      }
+
+      .result {
+        margin-top: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 4px;
+        border-left: 4px solid #3b82f6;
+      }
+
+      .result.error {
+        border-left-color: #ef4444;
+        background: #fef2f2;
+      }
+
+      .result.success {
+        border-left-color: #10b981;
+        background: #f0fdf4;
+      }
+
+      .time {
+        font-weight: 700;
+        color: #3b82f6;
+      }
+
+      .time.long-task {
+        color: #ef4444;
+      }
+
+      .products {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .product-card {
+        padding: 15px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+
+      .product-name {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+
+      .product-price {
+        color: #10b981;
+        font-weight: 700;
+      }
+
+      .product-discount {
+        color: #ef4444;
+        font-size: 12px;
+      }
+
+      .instructions {
+        background: #fffbeb;
+        border: 1px solid #fbbf24;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+
+      .instructions h3 {
+        color: #92400e;
+        margin-bottom: 10px;
+      }
+
+      .instructions ol {
+        margin-left: 20px;
+        color: #78350f;
+        line-height: 1.8;
+      }
+
+      .instructions code {
+        background: #fef3c7;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔴 Long Task 캡쳐 예제</h1>
+      <p class="description">
+        이 페이지는 3-3-1절 "Performance 탭에서 Long Task 찾기"를 위한 실습
+        예제입니다.<br />
+        각 버튼을 클릭하면 의도적으로 Long Task를 유발하여 Chrome DevTools
+        Performance 탭에서 확인할 수 있습니다.
+      </p>
+
+      <div class="instructions">
+        <h3>📸 Performance 탭 캡쳐 방법</h3>
+        <ol>
+          <li>Chrome DevTools를 엽니다 (F12 또는 Cmd+Option+I)</li>
+          <li><code>Performance</code> 탭을 선택합니다</li>
+          <li>녹화 버튼(⚫️)을 클릭하거나 Cmd+E를 누릅니다</li>
+          <li>아래 버튼 중 하나를 클릭합니다</li>
+          <li>2-3초 후 녹화를 정지합니다</li>
+          <li>Main 트랙에서 빨간색 삼각형 Long Task 경고를 확인합니다</li>
+        </ol>
+      </div>
+
+      <!-- 예제 1: 상품 정렬 -->
+      <div class="section">
+        <h2>📦 예제 1: 전자상거래 상품 정렬 (1000-2000ms Long Task)</h2>
+        <p>
+          20,000개 상품을 복잡한 로직으로 정렬합니다. 할인가, 배송비, 재고,
+          평점 가중치를 모두 계산하여 Long Task를 유발합니다.
+        </p>
+        <p style="color: #666; font-size: 13px; margin-bottom: 10px;">
+          💡 <strong>비교 포인트:</strong> 빨간 버튼은 한 번에 실행되어 Long Task를 유발하고,
+          초록 버튼은 작업을 분할하여 각 청크가 50ms 이하로 유지됩니다.
+          총 실행 시간은 비슷하지만, <strong>메인 스레드를 블로킹하지 않는 것이 핵심</strong>입니다.
+        </p>
+        <div class="buttons">
+          <button class="btn-danger" onclick="sortProducts()">
+            🔴 상품 정렬 (Long Task)
+          </button>
+          <button class="btn-success" onclick="sortProductsOptimized()">
+            ✅ 상품 정렬 (최적화)
+          </button>
+        </div>
+        <div id="sort-result"></div>
+        <div id="products-container"></div>
+      </div>
+
+      <!-- 예제 2: DOM 조작 -->
+      <div class="section">
+        <h2>🎨 예제 2: 대량 DOM 렌더링 (300-500ms Long Task)</h2>
+        <p>
+          10,000개의 DOM 요소를 한 번에 생성합니다. DOM 조작으로 인한 Long
+          Task를 확인할 수 있습니다.
+        </p>
+        <div class="buttons">
+          <button class="btn-danger" onclick="renderManyItems()">
+            🔴 10,000개 렌더링 (Long Task)
+          </button>
+          <button class="btn-primary" onclick="clearItems()">
+            🗑️ 초기화
+          </button>
+        </div>
+        <div id="render-result"></div>
+        <div id="items-container"></div>
+      </div>
+
+      <!-- 예제 3: 무거운 계산 -->
+      <div class="section">
+        <h2>🧮 예제 3: CPU 집약적 계산 (400-600ms Long Task)</h2>
+        <p>
+          복잡한 수학 계산을 100만 번 반복합니다. 순수 자바스크립트 실행으로
+          인한 Long Task를 확인할 수 있습니다.
+        </p>
+        <div class="buttons">
+          <button class="btn-danger" onclick="heavyCalculation()">
+            🔴 무거운 계산 (Long Task)
+          </button>
+        </div>
+        <div id="calc-result"></div>
+      </div>
+
+      <!-- 예제 4: 검색 필터링 -->
+      <div class="section">
+        <h2>🔍 예제 4: 검색 필터링 (100-200ms Long Task)</h2>
+        <p>
+          검색창에 타이핑할 때마다 10,000개 데이터를 필터링합니다. 타이핑
+          지연을 체감할 수 있습니다.
+        </p>
+        <div>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="상품명으로 검색... (예: 노트북)"
+            style="padding: 10px; width: 300px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px;"
+          />
+        </div>
+        <div id="search-result"></div>
+      </div>
+
+      <!-- 예제 5: React 리렌더링 -->
+      <div class="section">
+        <h2>⚛️ 예제 5: React 10,000개 리스트 렌더링 (800-1200ms Long Task)</h2>
+        <p>
+          React로 10,000개 아이템을 렌더링합니다. 버튼 클릭 시 상태 업데이트로
+          인한 리렌더링에서 Long Task가 발생합니다.
+        </p>
+        <p style="color: #666; font-size: 13px; margin-bottom: 10px;">
+          💡 <strong>확인 포인트:</strong> Performance 탭에서
+          React.render → reconcileChildren → createDOMElement 같은 React 내부
+          함수 호출 스택을 확인할 수 있습니다.
+        </p>
+        <div id="react-root"></div>
+      </div>
+    </div>
+
+    <!-- React CDN (Development 빌드 - 함수명이 minify되지 않아 Performance 탭에서 명확히 보임) -->
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script>
+      // 가짜 상품 데이터 생성 (20,000개로 증가)
+      const products = Array.from({ length: 20000 }, (_, i) => ({
+        id: i,
+        name: `상품 ${i + 1}`,
+        price: Math.floor(Math.random() * 100000) + 10000,
+        discountRate: Math.random() * 0.3,
+        freeShipping: Math.random() > 0.5,
+        inStock: Math.random() > 0.2,
+        rating: Math.random() * 5,
+        reviewCount: Math.floor(Math.random() * 1000),
+      }))
+
+      // 예제 1: 상품 정렬 (Long Task)
+      function sortProducts() {
+        const startTime = performance.now()
+        const container = document.getElementById('products-container')
+        container.innerHTML = ''
+
+        const sorted = [...products].sort((a, b) => {
+          // 할인가 계산
+          const priceA = a.price * (1 - a.discountRate)
+          const priceB = b.price * (1 - b.discountRate)
+
+          // 배송비 포함
+          const totalA = priceA + (a.freeShipping ? 0 : 3000)
+          const totalB = priceB + (b.freeShipping ? 0 : 3000)
+
+          // 무거운 계산 추가 (평점 가중치)
+          const scoreA =
+            totalA * 0.7 + Math.sqrt(a.rating) * 1000 + Math.sin(a.reviewCount) * 500
+          const scoreB =
+            totalB * 0.7 + Math.sqrt(b.rating) * 1000 + Math.sin(b.reviewCount) * 500
+
+          // 재고 있는 상품 우선
+          if (a.inStock !== b.inStock) {
+            return b.inStock - a.inStock
+          }
+
+          return scoreA - scoreB
+        })
+
+        // 상위 100개 렌더링
+        const html = sorted
+          .slice(0, 100)
+          .map(
+            (p) => `
+          <div class="product-card">
+            <div class="product-name">${p.name}</div>
+            <div class="product-price">₩${p.price.toLocaleString()}</div>
+            <div class="product-discount">${(p.discountRate * 100).toFixed(0)}% 할인</div>
+            <div style="font-size: 11px; color: #888; margin-top: 5px;">⭐ ${p.rating.toFixed(1)} (${p.reviewCount})</div>
+          </div>
+        `
+          )
+          .join('')
+
+        container.innerHTML = `<div class="products">${html}</div>`
+
+        const duration = performance.now() - startTime
+        const resultDiv = document.getElementById('sort-result')
+        resultDiv.className = duration > 50 ? 'result error' : 'result success'
+        resultDiv.innerHTML = `
+        <strong>실행 완료!</strong><br>
+        소요 시간: <span class="time ${duration > 50 ? 'long-task' : ''}">${duration.toFixed(2)}ms</span><br>
+        ${duration > 50 ? '⚠️ Long Task 발생! (메인 스레드 완전 블로킹)' : '✅ 정상 작업'}<br>
+        <small style="color: #666;">정렬된 ${sorted.length.toLocaleString()}개 중 상위 100개 표시</small>
+      `
+      }
+
+      // 예제 1-2: 상품 정렬 (최적화)
+      async function sortProductsOptimized() {
+        const startTime = performance.now()
+        const container = document.getElementById('products-container')
+        container.innerHTML = '<p>정렬 중...</p>'
+
+        const CHUNK_SIZE = 1000
+        const result = []
+
+        for (let i = 0; i < products.length; i += CHUNK_SIZE) {
+          const chunk = products.slice(i, i + CHUNK_SIZE)
+
+          const sorted = chunk.sort((a, b) => {
+            const priceA = a.price * (1 - a.discountRate)
+            const priceB = b.price * (1 - b.discountRate)
+            const totalA = priceA + (a.freeShipping ? 0 : 3000)
+            const totalB = priceB + (b.freeShipping ? 0 : 3000)
+
+            const scoreA =
+              totalA * 0.7 +
+              Math.sqrt(a.rating) * 1000 +
+              Math.sin(a.reviewCount) * 500
+            const scoreB =
+              totalB * 0.7 +
+              Math.sqrt(b.rating) * 1000 +
+              Math.sin(b.reviewCount) * 500
+
+            if (a.inStock !== b.inStock) {
+              return b.inStock - a.inStock
+            }
+            return scoreA - scoreB
+          })
+
+          result.push(...sorted)
+
+          // 메인 스레드 양보
+          await new Promise((resolve) => setTimeout(resolve, 0))
+        }
+
+        // 전체 재정렬 (병합 정렬의 마지막 단계)
+        const finalSorted = result.sort((a, b) => {
+          const priceA = a.price * (1 - a.discountRate)
+          const priceB = b.price * (1 - b.discountRate)
+          const totalA = priceA + (a.freeShipping ? 0 : 3000)
+          const totalB = priceB + (b.freeShipping ? 0 : 3000)
+
+          const scoreA =
+            totalA * 0.7 + Math.sqrt(a.rating) * 1000 + Math.sin(a.reviewCount) * 500
+          const scoreB =
+            totalB * 0.7 + Math.sqrt(b.rating) * 1000 + Math.sin(b.reviewCount) * 500
+
+          if (a.inStock !== b.inStock) {
+            return b.inStock - a.inStock
+          }
+          return scoreA - scoreB
+        })
+
+        // 상위 100개 렌더링
+        const html = finalSorted
+          .slice(0, 100)
+          .map(
+            (p) => `
+          <div class="product-card">
+            <div class="product-name">${p.name}</div>
+            <div class="product-price">₩${p.price.toLocaleString()}</div>
+            <div class="product-discount">${(p.discountRate * 100).toFixed(0)}% 할인</div>
+            <div style="font-size: 11px; color: #888; margin-top: 5px;">⭐ ${p.rating.toFixed(1)} (${p.reviewCount})</div>
+          </div>
+        `
+          )
+          .join('')
+
+        container.innerHTML = `<div class="products">${html}</div>`
+
+        const duration = performance.now() - startTime
+        const resultDiv = document.getElementById('sort-result')
+        resultDiv.className = 'result success'
+        resultDiv.innerHTML = `
+        <strong>최적화 완료!</strong><br>
+        소요 시간: <span class="time">${duration.toFixed(2)}ms</span><br>
+        ✅ 작업 분할로 Long Task 제거 (각 청크 50ms 이하)<br>
+        <small style="color: #666;">정렬된 ${finalSorted.length.toLocaleString()}개 중 상위 100개 표시<br>
+        ⚠️ 총 시간은 비슷하거나 약간 더 걸리지만, 메인 스레드를 블로킹하지 않음</small>
+      `
+      }
+
+      // 예제 2: DOM 렌더링 (Long Task)
+      function renderManyItems() {
+        const startTime = performance.now()
+        const container = document.getElementById('items-container')
+
+        let html = ''
+        for (let i = 0; i < 10000; i++) {
+          html += `<div style="padding: 5px; border-bottom: 1px solid #eee;">아이템 ${i + 1}</div>`
+        }
+        container.innerHTML = html
+
+        const duration = performance.now() - startTime
+        const resultDiv = document.getElementById('render-result')
+        resultDiv.className = 'result error'
+        resultDiv.innerHTML = `
+        <strong>렌더링 완료!</strong><br>
+        소요 시간: <span class="time long-task">${duration.toFixed(2)}ms</span><br>
+        ⚠️ Long Task 발생! (10,000개 DOM 요소 생성)
+      `
+      }
+
+      function clearItems() {
+        document.getElementById('items-container').innerHTML = ''
+        document.getElementById('render-result').innerHTML = ''
+      }
+
+      // 예제 3: 무거운 계산 (Long Task)
+      function heavyCalculation() {
+        const startTime = performance.now()
+
+        let result = 0
+        for (let i = 0; i < 1000000; i++) {
+          result += Math.sqrt(i) * Math.sin(i) * Math.cos(i)
+        }
+
+        const duration = performance.now() - startTime
+        const resultDiv = document.getElementById('calc-result')
+        resultDiv.className = 'result error'
+        resultDiv.innerHTML = `
+        <strong>계산 완료!</strong><br>
+        결과: ${result.toFixed(2)}<br>
+        소요 시간: <span class="time long-task">${duration.toFixed(2)}ms</span><br>
+        ⚠️ Long Task 발생! (100만 번 계산)
+      `
+      }
+
+      // 예제 4: 검색 필터링
+      const allItems = Array.from({ length: 10000 }, (_, i) => ({
+        id: i,
+        name: `노트북 ${i + 1}`,
+      }))
+
+      document
+        .getElementById('search-input')
+        .addEventListener('input', (e) => {
+          const startTime = performance.now()
+          const query = e.target.value.toLowerCase()
+
+          if (!query) {
+            document.getElementById('search-result').innerHTML = ''
+            return
+          }
+
+          // Long Task: 10,000개 모두 필터링
+          const filtered = allItems.filter((item) =>
+            item.name.toLowerCase().includes(query)
+          )
+
+          const duration = performance.now() - startTime
+          const resultDiv = document.getElementById('search-result')
+          resultDiv.className = duration > 50 ? 'result error' : 'result success'
+          resultDiv.innerHTML = `
+          검색 결과: ${filtered.length}개<br>
+          소요 시간: <span class="time ${duration > 50 ? 'long-task' : ''}">${duration.toFixed(2)}ms</span><br>
+          ${duration > 50 ? '⚠️ 타이핑할 때마다 Long Task 발생!' : '✅ 정상 작업'}
+        `
+        })
+    </script>
+
+    <!-- React 컴포넌트 -->
+    <script type="text/babel">
+      const { useState } = React
+
+      function BadList() {
+        const [items, setItems] = useState([])
+        const [loading, setLoading] = useState(false)
+
+        function loadItems() {
+          setLoading(true)
+          const startTime = performance.now()
+
+          // 10,000개 아이템 생성
+          const newItems = []
+          for (let i = 0; i < 10000; i++) {
+            newItems.push({ id: i, text: `아이템 ${i + 1}` })
+          }
+
+          // Long Task 발생 (리렌더링)
+          setItems(newItems)
+
+          setTimeout(() => {
+            const duration = performance.now() - startTime
+            alert(
+              `렌더링 완료!\n소요 시간: ${duration.toFixed(2)}ms\n\n⚠️ Performance 탭에서 React 내부 함수 호출 스택을 확인해보세요.\n(React.render → reconcileChildren → appendChild)`
+            )
+            setLoading(false)
+          }, 100)
+        }
+
+        function clearItems() {
+          setItems([])
+        }
+
+        return (
+          <div>
+            <div className="buttons">
+              <button
+                className="btn-danger"
+                onClick={loadItems}
+                disabled={loading}
+              >
+                🔴 10,000개 아이템 렌더링 (Long Task)
+              </button>
+              <button className="btn-primary" onClick={clearItems}>
+                🗑️ 초기화
+              </button>
+            </div>
+            {loading && (
+              <div className="result" style={{ marginTop: '15px' }}>
+                렌더링 중...
+              </div>
+            )}
+            {items.length > 0 && (
+              <div className="result success" style={{ marginTop: '15px' }}>
+                <strong>{items.length.toLocaleString()}개 렌더링 완료</strong>
+                <br />
+                <small style={{ color: '#666' }}>
+                  스크롤 가능한 영역에 모든 아이템이 표시됩니다.
+                </small>
+              </div>
+            )}
+            <div
+              style={{
+                maxHeight: '400px',
+                overflow: 'auto',
+                marginTop: '15px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '6px',
+              }}
+            >
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    padding: '8px 15px',
+                    borderBottom: '1px solid #f3f4f6',
+                    fontSize: '14px',
+                  }}
+                >
+                  {item.text}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      // React 앱 렌더링
+      const root = ReactDOM.createRoot(document.getElementById('react-root'))
+      root.render(<BadList />)
+    </script>
+  </body>
+</html>

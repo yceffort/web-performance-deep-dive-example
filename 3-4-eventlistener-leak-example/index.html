@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EventListener 메모리 누수 예제</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        padding: 2rem;
+        background: #f5f5f5;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 1rem;
+      }
+
+      .info {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        border-radius: 4px;
+      }
+
+      .info h3 {
+        color: #1976d2;
+        margin-bottom: 0.5rem;
+      }
+
+      .info ol {
+        margin-left: 1.5rem;
+        color: #555;
+      }
+
+      .info li {
+        margin-bottom: 0.5rem;
+      }
+
+      .controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      button {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #2196f3;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #1976d2;
+      }
+
+      .btn-danger {
+        background: #f44336;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #d32f2f;
+      }
+
+      .btn-secondary {
+        background: #607d8b;
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #455a64;
+      }
+
+      .stats {
+        background: #f5f5f5;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 2rem;
+      }
+
+      .stats p {
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .stats strong {
+        color: #2196f3;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .modal {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        max-width: 500px;
+        width: 90%;
+      }
+
+      .modal h2 {
+        margin-bottom: 1rem;
+        color: #333;
+      }
+
+      .modal p {
+        color: #666;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+
+      .modal input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+      }
+
+      .warning {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin-top: 2rem;
+        border-radius: 4px;
+      }
+
+      .warning strong {
+        color: #f57c00;
+      }
+
+      code {
+        background: #f5f5f5;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🐛 EventListener 메모리 누수 예제</h1>
+
+      <div class="info">
+        <h3>📋 메모리 누수 디버깅 방법</h3>
+        <ol>
+          <li>Chrome DevTools를 엽니다 (F12 또는 Cmd+Option+I)</li>
+          <li>Memory 탭으로 이동합니다</li>
+          <li>"Heap snapshot"을 선택하고 <strong>첫 번째 스냅샷</strong>을 찍습니다</li>
+          <li>"모달 10번 열고 닫기" 버튼을 클릭합니다</li>
+          <li><strong>두 번째 스냅샷</strong>을 찍습니다</li>
+          <li>두 번째 스냅샷을 선택하고 "Comparison" 뷰로 전환합니다</li>
+          <li>"# Delta" 기준으로 정렬하여 EventListener가 +10 증가한 것을 확인합니다</li>
+          <li>EventListener 항목을 선택하고 하단의 Retainers 패널에서 참조 체인을 확인합니다</li>
+        </ol>
+      </div>
+
+      <div class="controls">
+        <button class="btn-primary" onclick="openModal()">검색 모달 열기</button>
+        <button class="btn-danger" onclick="openModalMultipleTimes(10)">
+          모달 10번 열고 닫기
+        </button>
+        <button class="btn-secondary" onclick="location.reload()">페이지 새로고침</button>
+      </div>
+
+      <div class="stats">
+        <p><strong>모달 열기 횟수:</strong> <span id="openCount">0</span></p>
+        <p>
+          <strong>예상 누수된 EventListener:</strong>
+          <span id="leakedListeners">0</span>
+        </p>
+      </div>
+
+      <div class="warning">
+        <p>
+          <strong>⚠️ 문제:</strong> 이 코드는 모달을 열 때마다 <code>keydown</code> 이벤트
+          리스너를 등록하지만, 모달을 닫을 때 제거하지 않습니다. 따라서 모달을 10번 열면 10개의
+          이벤트 리스너가 메모리에 남게 됩니다.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      let openCount = 0
+      let currentHandler = null
+
+      // ❌ 문제가 있는 코드: cleanup을 하지 않음
+      function openModal() {
+        openCount++
+        updateStats()
+
+        const overlay = createModalElement()
+        document.body.appendChild(overlay)
+
+        // 이벤트 리스너를 등록하지만 제거하지 않음!
+        function handleKeyDown(e) {
+          if (e.key === 'Escape') {
+            closeModal(overlay)
+          }
+        }
+
+        // 여기가 문제! removeEventListener를 호출하지 않음
+        window.addEventListener('keydown', handleKeyDown)
+
+        // 참조를 저장 (디버깅용)
+        currentHandler = handleKeyDown
+      }
+
+      function createModalElement() {
+        const overlay = document.createElement('div')
+        overlay.className = 'modal-overlay'
+
+        overlay.innerHTML = `
+          <div class="modal">
+            <h2>🔍 검색 모달</h2>
+            <p>ESC 키를 누르거나 닫기 버튼을 클릭하여 모달을 닫으세요.</p>
+            <input type="text" placeholder="검색어를 입력하세요..." autofocus />
+            <div class="modal-actions">
+              <button class="btn-secondary" onclick="closeModal(this.closest('.modal-overlay'))">
+                닫기
+              </button>
+            </div>
+          </div>
+        `
+
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) {
+            closeModal(overlay)
+          }
+        })
+
+        return overlay
+      }
+
+      function closeModal(overlay) {
+        if (overlay && overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay)
+        }
+        // ❌ 여기서 window.removeEventListener('keydown', handleKeyDown)를 호출해야 하지만 하지 않음!
+      }
+
+      function updateStats() {
+        document.getElementById('openCount').textContent = openCount
+        document.getElementById('leakedListeners').textContent = openCount
+      }
+
+      // 메모리 누수를 빠르게 재현하기 위한 함수
+      async function openModalMultipleTimes(count) {
+        for (let i = 0; i < count; i++) {
+          openModal()
+          await sleep(100) // 100ms 대기
+          const overlay = document.querySelector('.modal-overlay')
+          if (overlay) {
+            closeModal(overlay)
+          }
+          await sleep(100) // 100ms 대기
+        }
+
+        alert(
+          `✅ 모달을 ${count}번 열고 닫았습니다.\n\n` +
+            `지금 Memory 탭에서 두 번째 Heap snapshot을 찍고,\n` +
+            `Comparison 뷰에서 EventListener의 # Delta가 +${count}인지 확인하세요!`
+        )
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms))
+      }
+
+      // 페이지 로드 시 안내
+      window.addEventListener('load', () => {
+        console.log('🐛 EventListener 메모리 누수 예제')
+        console.log('📋 디버깅 순서:')
+        console.log('1. DevTools > Memory 탭 > Heap snapshot 찍기')
+        console.log('2. "모달 10번 열고 닫기" 버튼 클릭')
+        console.log('3. 다시 Heap snapshot 찍기')
+        console.log('4. Comparison 뷰로 전환')
+        console.log('5. # Delta 기준 정렬하여 EventListener +10 확인')
+        console.log('6. EventListener 선택 후 Retainers 패널에서 참조 체인 확인')
+      })
+    </script>
+  </body>
+</html>

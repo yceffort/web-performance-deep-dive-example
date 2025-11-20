@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>4. async 스크립트</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      h1 {
+        color: #3182ce;
+      }
+      pre {
+        background: #1a202c;
+        color: #f7fafc;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      .info {
+        background: #ebf8ff;
+        border-left: 4px solid #3182ce;
+        padding: 15px;
+        margin: 15px 0;
+      }
+      code {
+        background: #edf2f7;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Courier New', monospace;
+      }
+    </style>
+
+    <script>
+      console.log('⏰ [inline] <head> 시작 -', new Date().toISOString())
+    </script>
+
+    <!-- 📊 async 스크립트 - 다운로드 완료 즉시 실행 -->
+    <script async src="./scripts/analytics.js"></script>
+
+    <script>
+      console.log('⏰ [inline] <head> 끝 (async는 블로킹 안 함) -', new Date().toISOString())
+
+      // DOMContentLoaded 이벤트 리스너
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎉 [DOMContentLoaded] 발생 -', new Date().toISOString())
+        console.log('🎉 [DOMContentLoaded] async 스크립트를 기다리지 않음')
+
+        const eventLog = document.getElementById('event-log')
+        if (eventLog) {
+          eventLog.textContent = '✅ DOMContentLoaded 발생 완료'
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <script>
+      console.log('⏰ [inline] <body> 시작 -', new Date().toISOString())
+    </script>
+
+    <div class="card">
+      <h1>📊 시나리오 4: async 스크립트</h1>
+      <p><code>&lt;script async&gt;</code> 태그는 다운로드 완료 즉시 실행됩니다.</p>
+      <p>DOMContentLoaded는 async 스크립트를 기다리지 않습니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>📋 테스트 방법</h2>
+      <ol>
+        <li>크롬 개발자 도구 열기 (F12)</li>
+        <li><strong>Performance 탭</strong> 선택</li>
+        <li>왼쪽 위 <strong>Record 버튼 (●)</strong> 클릭</li>
+        <li><strong>페이지 새로고침</strong> (Cmd+R 또는 Ctrl+R)</li>
+        <li>몇 초 후 <strong>Stop 버튼 (■)</strong> 클릭</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🔍 확인 사항</h2>
+      <div class="info">
+        <strong>📊 async 동작 확인:</strong>
+        <ul>
+          <li>"Evaluate Script"가 HTML 파싱 중간에 실행될 수 있음</li>
+          <li>스크립트 실행 시 HTML 파싱이 잠시 중단됨</li>
+          <li>
+            <strong>DOMContentLoaded가 async 스크립트를 기다리지 않음</strong>
+          </li>
+          <li>콘솔 출력 순서는 매번 달라질 수 있음 (네트워크 상황에 따라)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 예상 타임라인 (다운로드가 빠른 경우)</h2>
+      <pre>
+Main Thread:
+├─ Parse HTML (0~200ms)
+├─ Evaluate Script - analytics.js (200~210ms) ← 파싱 중단
+├─ Parse HTML (210~500ms)
+└─ DOMContentLoaded (500ms) ← async 스크립트와 무관
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>📊 예상 타임라인 (다운로드가 느린 경우)</h2>
+      <pre>
+Main Thread:
+├─ Parse HTML (0~500ms)
+├─ DOMContentLoaded (500ms) ← async를 기다리지 않음
+└─ Evaluate Script - analytics.js (800ms) ← 나중에 실행
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>📝 콘솔 출력 (경우 1: 빠른 다운로드)</h2>
+      <ol>
+        <li><code>⏰ [inline] &lt;head&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;head&gt; 끝</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 시작</code></li>
+        <li><code>📊 [analytics.js] 실행 시작</code> ⭐ (파싱 중)</li>
+        <li><code>📊 [analytics.js] 실행 완료</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 끝</code></li>
+        <li><code>🎉 [DOMContentLoaded] 발생</code></li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>📝 콘솔 출력 (경우 2: 느린 다운로드)</h2>
+      <ol>
+        <li><code>⏰ [inline] &lt;head&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;head&gt; 끝</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 끝</code></li>
+        <li><code>🎉 [DOMContentLoaded] 발생</code> ⭐ (async 전에 발생)</li>
+        <li><code>📊 [analytics.js] 실행 시작</code> ⭐ (DOMContentLoaded 후)</li>
+        <li><code>📊 [analytics.js] 실행 완료</code></li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🎯 핵심 포인트</h2>
+      <ul>
+        <li>async 스크립트는 다운로드 완료 즉시 실행됩니다</li>
+        <li>실행 시 HTML 파싱을 잠시 중단할 수 있습니다</li>
+        <li>
+          <strong>DOMContentLoaded는 async 스크립트를 기다리지 않습니다</strong>
+        </li>
+        <li>실행 순서를 예측할 수 없으므로 독립적인 코드에만 사용합니다</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>💡 defer vs async 차이</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr style="background: #edf2f7;">
+          <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e0;">
+            특징
+          </th>
+          <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e0;">
+            defer
+          </th>
+          <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e0;">
+            async
+          </th>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">실행 시점</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">HTML 파싱 완료 후</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">다운로드 완료 즉시</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">파싱 중단</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">없음</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">가능</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            DOMContentLoaded
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            실행 완료 후 발생
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">대기 안 함</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">사용 사례</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            앱 코드, 라이브러리
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">분석, 광고, 위젯</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>✅ 이벤트 상태</h2>
+      <p id="event-log">대기 중...</p>
+    </div>
+
+    <script>
+      console.log('⏰ [inline] <body> 끝 -', new Date().toISOString())
+    </script>
+  </body>
+</html>

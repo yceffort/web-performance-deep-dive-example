@@ -1,0 +1,63 @@
+---
+import Header from '../components/Header.astro'
+import InteractiveButton from '../components/InteractiveButton.tsx'
+import ImageGallery from '../components/ImageGallery.tsx'
+import SearchWidget from '../components/SearchWidget.tsx'
+import StaticContent from '../components/StaticContent.astro'
+---
+
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro Hydration Strategies</title>
+  </head>
+  <body>
+    <Header />
+
+    <main style="max-width: 800px; margin: 0 auto; padding: 0 1rem;">
+      <h1>Astro 하이드레이션 전략 예제</h1>
+      <p>
+        이 페이지는 문서 라인 675-690의 다양한 하이드레이션 전략을 시연합니다.
+        개발자 도구의 Network 탭과 Performance 탭에서 각 컴포넌트의 자바스크립트 로딩 시점을 확인하세요.
+      </p>
+
+      <!-- 페이지 로드 시 즉시 하이드레이션 -->
+      <InteractiveButton client:load />
+
+      <!-- 컴포넌트가 뷰포트에 보일 때 하이드레이션 (Lazy Loading) -->
+      <div style="height: 100vh; background: #f0f0f0; display: flex; align-items: center; justify-content: center; margin: 2rem 0;">
+        <p>스크롤을 내려서 client:visible 컴포넌트를 확인하세요 ↓</p>
+      </div>
+      <ImageGallery client:visible />
+
+      <!-- 브라우저가 idle 상태일 때 하이드레이션 -->
+      <SearchWidget client:idle />
+
+      <!-- 하이드레이션 없이 정적 HTML만 (기본 동작) -->
+      <StaticContent />
+
+      <div style="margin-top: 2rem; padding: 1rem; background: #e3f2fd;">
+        <h3>검증 방법</h3>
+        <ol>
+          <li>Network 탭을 열고 페이지를 새로고침하세요</li>
+          <li>InteractiveButton은 즉시 JS가 로드됩니다</li>
+          <li>스크롤을 내려 ImageGallery가 보일 때 JS가 로드됩니다</li>
+          <li>SearchWidget은 브라우저 idle 후 JS가 로드됩니다</li>
+          <li>StaticContent는 JS가 전혀 로드되지 않습니다</li>
+        </ol>
+      </div>
+    </main>
+  </body>
+</html>
+
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  h1 {
+    color: #333;
+  }
+</style>

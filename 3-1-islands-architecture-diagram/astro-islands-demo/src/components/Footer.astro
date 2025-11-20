@@ -1,0 +1,52 @@
+---
+// Footer.astro - 정적 컴포넌트 (JavaScript 0KB)
+---
+
+<footer class="footer">
+  <div class="container">
+    <p>&copy; 2024 My Blog. All rights reserved.</p>
+    <div class="links">
+      <a href="/privacy">개인정보처리방침</a>
+      <a href="/terms">이용약관</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: #2c3e50;
+    color: white;
+    padding: 2rem 0;
+    margin-top: 4rem;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    text-align: center;
+  }
+
+  .container p {
+    margin-bottom: 1rem;
+    opacity: 0.8;
+  }
+
+  .links {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+  }
+
+  .links a {
+    color: white;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+
+  .links a:hover {
+    opacity: 1;
+  }
+</style>

@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>렌더 블로킹 리소스 감지 데모</title>
+
+    <!-- 렌더 블로킹 CSS -->
+    <link rel="stylesheet" href="styles/blocking.css" />
+
+    <!-- 비렌더 블로킹 CSS (media="print") -->
+    <link rel="stylesheet" href="styles/print.css" media="print" />
+
+    <!-- 렌더 블로킹 자바스크립트 (동기) -->
+    <script src="scripts/blocking.js"></script>
+
+    <!-- 비렌더 블로킹 자바스크립트 (async) -->
+    <script src="scripts/async.js" async></script>
+
+    <!-- 비렌더 블로킹 자바스크립트 (defer) -->
+    <script src="scripts/defer.js" defer></script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        padding: 2rem;
+        background: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 1rem;
+      }
+
+      .description {
+        color: #666;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: #f9f9f9;
+        border-left: 4px solid #007bff;
+        border-radius: 4px;
+      }
+
+      .controls {
+        margin-bottom: 2rem;
+      }
+
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      .results {
+        margin-top: 2rem;
+      }
+
+      .section {
+        margin-bottom: 2rem;
+      }
+
+      .section h2 {
+        color: #333;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #007bff;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: white;
+      }
+
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #333;
+      }
+
+      tr:hover {
+        background: #f8f9fa;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      .badge-blocking {
+        background: #dc3545;
+        color: white;
+      }
+
+      .badge-non-blocking {
+        background: #28a745;
+        color: white;
+      }
+
+      .badge-css {
+        background: #007bff;
+        color: white;
+      }
+
+      .badge-js {
+        background: #ffc107;
+        color: #333;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .stat-card {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border-left: 4px solid #007bff;
+      }
+
+      .stat-card h3 {
+        font-size: 0.875rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+      }
+
+      .code-block {
+        background: #f4f4f4;
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        margin-top: 1rem;
+      }
+
+      .code-block pre {
+        margin: 0;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 0.875rem;
+      }
+
+      .timeline {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f9f9f9;
+        border-radius: 4px;
+      }
+
+      .timeline-item {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: white;
+        border-radius: 4px;
+        border-left: 3px solid #007bff;
+      }
+
+      .url {
+        color: #007bff;
+        word-break: break-all;
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔍 렌더 블로킹 리소스 감지 데모</h1>
+
+      <div class="description">
+        <strong>이 페이지는 다양한 종류의 리소스를 포함하고 있습니다:</strong>
+        <ul style="margin-top: 0.5rem; margin-left: 1.5rem">
+          <li>렌더 블로킹 CSS (blocking.css)</li>
+          <li>비렌더 블로킹 CSS (print.css with media="print")</li>
+          <li>렌더 블로킹 자바스크립트 (blocking.js, 동기)</li>
+          <li>비렌더 블로킹 자바스크립트 (async.js, defer.js)</li>
+        </ul>
+        <p style="margin-top: 0.5rem">
+          아래 버튼을 클릭하여 렌더 블로킹 리소스를 분석하세요.
+        </p>
+      </div>
+
+      <div class="controls">
+        <button onclick="analyzeRenderBlockingResources()">
+          📊 렌더 블로킹 리소스 분석
+        </button>
+      </div>
+
+      <div class="results" id="results"></div>
+    </div>
+
+    <script>
+      // 렌더 블로킹 리소스 분석 함수
+      function analyzeRenderBlockingResources() {
+        const renderBlockingResources = []
+        const nonBlockingResources = []
+
+        // CSS 확인
+        document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+          const isBlocking =
+            !link.media || link.media === 'all' || link.media === 'screen'
+
+          const resource = {
+            type: 'CSS',
+            url: link.href,
+            media: link.media || 'all',
+            isBlocking,
+          }
+
+          if (isBlocking) {
+            renderBlockingResources.push(resource)
+          } else {
+            nonBlockingResources.push(resource)
+          }
+        })
+
+        // 자바스크립트 확인
+        document.querySelectorAll('script[src]').forEach((script) => {
+          const inHead = script.closest('head') !== null
+          const isBlocking = !script.async && !script.defer && inHead
+
+          const resource = {
+            type: 'JavaScript',
+            url: script.src,
+            async: script.async,
+            defer: script.defer,
+            location: inHead ? 'head' : 'body',
+            isBlocking,
+          }
+
+          if (isBlocking) {
+            renderBlockingResources.push(resource)
+          } else {
+            nonBlockingResources.push(resource)
+          }
+        })
+
+        // Performance API로 상세 정보 가져오기
+        const perfResources = performance.getEntriesByType('resource')
+        renderBlockingResources.forEach((resource) => {
+          const perfEntry = perfResources.find((p) => p.name === resource.url)
+          if (perfEntry) {
+            resource.duration = perfEntry.duration.toFixed(2)
+            resource.size = perfEntry.transferSize
+            resource.startTime = perfEntry.startTime.toFixed(2)
+          }
+        })
+
+        nonBlockingResources.forEach((resource) => {
+          const perfEntry = perfResources.find((p) => p.name === resource.url)
+          if (perfEntry) {
+            resource.duration = perfEntry.duration.toFixed(2)
+            resource.size = perfEntry.transferSize
+            resource.startTime = perfEntry.startTime.toFixed(2)
+          }
+        })
+
+        // 결과 출력
+        displayResults(renderBlockingResources, nonBlockingResources)
+
+        // 콘솔에도 출력
+        console.log('🔴 Render Blocking Resources:')
+        console.table(renderBlockingResources)
+        console.log('🟢 Non-Blocking Resources:')
+        console.table(nonBlockingResources)
+      }
+
+      // 결과 표시 함수
+      function displayResults(blockingResources, nonBlockingResources) {
+        const resultsDiv = document.getElementById('results')
+
+        // 통계
+        const totalBlocking = blockingResources.length
+        const totalNonBlocking = nonBlockingResources.length
+        const totalSize = blockingResources.reduce(
+          (sum, r) => sum + (r.size || 0),
+          0,
+        )
+        const totalDuration = blockingResources.reduce(
+          (sum, r) => sum + (parseFloat(r.duration) || 0),
+          0,
+        )
+
+        resultsDiv.innerHTML = `
+          <div class="section">
+            <h2>📈 통계</h2>
+            <div class="stats">
+              <div class="stat-card">
+                <h3>렌더 블로킹 리소스</h3>
+                <div class="value">${totalBlocking}</div>
+              </div>
+              <div class="stat-card">
+                <h3>비렌더 블로킹 리소스</h3>
+                <div class="value">${totalNonBlocking}</div>
+              </div>
+              <div class="stat-card">
+                <h3>총 크기 (블로킹)</h3>
+                <div class="value">${(totalSize / 1024).toFixed(1)} KB</div>
+              </div>
+              <div class="stat-card">
+                <h3>총 로딩 시간</h3>
+                <div class="value">${totalDuration.toFixed(0)} ms</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h2>🔴 렌더 블로킹 리소스 (${totalBlocking}개)</h2>
+            ${blockingResources.length > 0 ? generateTable(blockingResources) : '<p>렌더 블로킹 리소스가 없습니다.</p>'}
+          </div>
+
+          <div class="section">
+            <h2>🟢 비렌더 블로킹 리소스 (${totalNonBlocking}개)</h2>
+            ${nonBlockingResources.length > 0 ? generateTable(nonBlockingResources) : '<p>비렌더 블로킹 리소스가 없습니다.</p>'}
+          </div>
+
+          <div class="section">
+            <h2>💡 개선 제안</h2>
+            ${generateRecommendations(blockingResources)}
+          </div>
+
+          <div class="section">
+            <h2>📋 감지 코드</h2>
+            <div class="code-block">
+              <pre>${getDetectionCode()}</pre>
+            </div>
+          </div>
+        `
+      }
+
+      // 테이블 생성
+      function generateTable(resources) {
+        const rows = resources
+          .map((resource) => {
+            const typeBadge =
+              resource.type === 'CSS'
+                ? '<span class="badge badge-css">CSS</span>'
+                : '<span class="badge badge-js">JS</span>'
+            const blockingBadge = resource.isBlocking
+              ? '<span class="badge badge-blocking">Blocking</span>'
+              : '<span class="badge badge-non-blocking">Non-Blocking</span>'
+
+            let details = ''
+            if (resource.type === 'CSS') {
+              details = `media="${resource.media}"`
+            } else {
+              details = `async=${resource.async}, defer=${resource.defer}`
+            }
+
+            return `
+              <tr>
+                <td>${typeBadge}</td>
+                <td>${blockingBadge}</td>
+                <td><div class="url">${getFileName(resource.url)}</div></td>
+                <td>${details}</td>
+                <td>${resource.duration || '-'} ms</td>
+                <td>${resource.size ? (resource.size / 1024).toFixed(2) : '-'} KB</td>
+              </tr>
+            `
+          })
+          .join('')
+
+        return `
+          <table>
+            <thead>
+              <tr>
+                <th>타입</th>
+                <th>상태</th>
+                <th>URL</th>
+                <th>속성</th>
+                <th>로딩 시간</th>
+                <th>크기</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        `
+      }
+
+      // 개선 제안 생성
+      function generateRecommendations(blockingResources) {
+        const recommendations = []
+
+        blockingResources.forEach((resource) => {
+          if (resource.type === 'CSS') {
+            recommendations.push(`
+              <div class="timeline-item">
+                <strong>CSS 최적화:</strong> ${getFileName(resource.url)}<br>
+                <span style="color: #666; font-size: 0.875rem;">
+                  ✅ Critical CSS를 인라인으로 삽입하고 나머지는 비동기 로드<br>
+                  ✅ 14KB 이하로 유지하여 첫 RTT에 포함
+                </span>
+              </div>
+            `)
+          } else if (resource.type === 'JavaScript') {
+            recommendations.push(`
+              <div class="timeline-item">
+                <strong>JavaScript 최적화:</strong> ${getFileName(resource.url)}<br>
+                <span style="color: #666; font-size: 0.875rem;">
+                  ✅ async 또는 defer 속성 추가<br>
+                  ✅ 필수 스크립트만 head에 배치, 나머지는 body 끝에 이동
+                </span>
+              </div>
+            `)
+          }
+        })
+
+        if (recommendations.length === 0) {
+          return '<p style="color: #28a745; font-weight: 600;">✅ 렌더 블로킹 리소스가 없습니다. 최적화가 잘 되어 있습니다!</p>'
+        }
+
+        return `<div class="timeline">${recommendations.join('')}</div>`
+      }
+
+      // 파일명 추출
+      function getFileName(url) {
+        try {
+          return new URL(url).pathname.split('/').pop() || url
+        } catch {
+          return url
+        }
+      }
+
+      // 감지 코드 문자열
+      function getDetectionCode() {
+        return `// 렌더 블로킹 리소스 감지 코드
+const renderBlockingResources = []
+
+// CSS 확인
+document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+  if (!link.media || link.media === 'all' || link.media === 'screen') {
+    renderBlockingResources.push({
+      type: 'CSS',
+      url: link.href,
+      size: null, // Performance API로 확인 가능
+    })
+  }
+})
+
+// 동기 스크립트 확인 (head 내부, async/defer 없음)
+document.querySelectorAll('script[src]').forEach((script) => {
+  const inHead = script.closest('head') !== null
+  const isBlocking = !script.async && !script.defer && inHead
+
+  if (isBlocking) {
+    renderBlockingResources.push({
+      type: 'JavaScript',
+      url: script.src,
+      async: false,
+      defer: false,
+    })
+  }
+})
+
+console.table(renderBlockingResources)`
+      }
+
+      // 페이지 로드 시 자동 분석 (선택적)
+      // window.addEventListener('load', () => {
+      //   setTimeout(analyzeRenderBlockingResources, 1000)
+      // })
+    </script>
+  </body>
+</html>

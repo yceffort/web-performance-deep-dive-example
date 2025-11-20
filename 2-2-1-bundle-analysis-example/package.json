@@ -1,0 +1,31 @@
+{
+  "name": "bundle-analysis-example",
+  "version": "1.0.0",
+  "description": "번들 분석 예제 - 의도적으로 문제가 있는 번들 구성",
+  "scripts": {
+    "start": "npm run build && npm run serve",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "analyze": "webpack --mode production --env analyze",
+    "serve": "npx -y serve@latest dist -l 8900"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "moment": "^2.29.4",
+    "lodash": "^4.17.21",
+    "axios": "^1.6.0",
+    "chart.js": "^4.4.0",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@babel/preset-react": "^7.22.0",
+    "babel-loader": "^9.1.3",
+    "html-webpack-plugin": "^5.5.3",
+    "webpack": "^5.89.0",
+    "webpack-bundle-analyzer": "^4.10.1",
+    "webpack-cli": "^5.1.4"
+  }
+}

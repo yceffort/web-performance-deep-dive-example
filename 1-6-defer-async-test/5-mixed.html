@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5. 혼합 (defer + async)</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      h1 {
+        color: #805ad5;
+      }
+      pre {
+        background: #1a202c;
+        color: #f7fafc;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      .info {
+        background: #faf5ff;
+        border-left: 4px solid #805ad5;
+        padding: 15px;
+        margin: 15px 0;
+      }
+      code {
+        background: #edf2f7;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Courier New', monospace;
+      }
+      .defer {
+        color: #38a169;
+      }
+      .async {
+        color: #3182ce;
+      }
+    </style>
+
+    <script>
+      console.log('⏰ [inline] <head> 시작 -', new Date().toISOString())
+    </script>
+
+    <!-- ✅ defer 스크립트 - 애플리케이션 코드 -->
+    <script defer src="./scripts/light-script.js"></script>
+
+    <!-- 📊 async 스크립트 - 분석 코드 -->
+    <script async src="./scripts/analytics.js"></script>
+
+    <script>
+      console.log('⏰ [inline] <head> 끝 -', new Date().toISOString())
+
+      // DOMContentLoaded 이벤트 리스너
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎉 [DOMContentLoaded] 발생 -', new Date().toISOString())
+
+        const eventLog = document.getElementById('event-log')
+        if (eventLog) {
+          eventLog.textContent = '✅ DOMContentLoaded 발생 완료'
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <script>
+      console.log('⏰ [inline] <body> 시작 -', new Date().toISOString())
+    </script>
+
+    <div class="card">
+      <h1>🎨 시나리오 5: 혼합 (defer + async)</h1>
+      <p>실무에서 가장 흔한 패턴: defer와 async를 함께 사용</p>
+      <ul>
+        <li>
+          <span class="defer">defer</span>: 애플리케이션 코드 (light-script.js)
+        </li>
+        <li><span class="async">async</span>: 분석 코드 (analytics.js)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>📋 테스트 방법</h2>
+      <ol>
+        <li>크롬 개발자 도구 열기 (F12)</li>
+        <li><strong>Performance 탭</strong> 선택</li>
+        <li>왼쪽 위 <strong>Record 버튼 (●)</strong> 클릭</li>
+        <li><strong>페이지 새로고침</strong> (Cmd+R 또는 Ctrl+R)</li>
+        <li>몇 초 후 <strong>Stop 버튼 (■)</strong> 클릭</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🔍 확인 사항</h2>
+      <div class="info">
+        <strong>🎨 혼합 사용 동작:</strong>
+        <ul>
+          <li>
+            <span class="async">async</span> 스크립트는 다운로드 순서대로 실행 (예측
+            불가)
+          </li>
+          <li>
+            <span class="defer">defer</span> 스크립트는 HTML 파싱 완료 후, HTML
+            순서대로 실행
+          </li>
+          <li>
+            DOMContentLoaded는 <span class="defer">defer</span> 스크립트만 기다림
+          </li>
+          <li>
+            <span class="async">async</span> 스크립트는 DOMContentLoaded 전후 언제든
+            실행 가능
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 예상 타임라인 (경우 1: async가 빠른 경우)</h2>
+      <pre>
+Main Thread:
+├─ Parse HTML (0~300ms)
+├─ Evaluate Script - analytics.js (300~310ms) ← async 먼저
+├─ Parse HTML (310~500ms)
+├─ Evaluate Script - light-script.js (500~510ms) ← defer
+└─ DOMContentLoaded (510ms)
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>📊 예상 타임라인 (경우 2: async가 느린 경우)</h2>
+      <pre>
+Main Thread:
+├─ Parse HTML (0~500ms)
+├─ Evaluate Script - light-script.js (500~510ms) ← defer
+├─ DOMContentLoaded (510ms)
+└─ Evaluate Script - analytics.js (800ms) ← async 나중에
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>📝 콘솔 출력 (다양한 순서 가능)</h2>
+      <p><strong>경우 1: async가 먼저 실행</strong></p>
+      <ol>
+        <li><code>⏰ [inline] &lt;head&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;head&gt; 끝</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 시작</code></li>
+        <li>
+          <code>📊 [analytics.js] 실행 시작</code>
+          <span class="async">← async (파싱 중)</span>
+        </li>
+        <li><code>📊 [analytics.js] 실행 완료</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 끝</code></li>
+        <li>
+          <code>✅ [light-script.js] 실행 시작</code>
+          <span class="defer">← defer (파싱 완료 후)</span>
+        </li>
+        <li><code>✅ [light-script.js] 실행 완료</code></li>
+        <li><code>🎉 [DOMContentLoaded] 발생</code></li>
+      </ol>
+
+      <p><strong>경우 2: defer가 먼저 실행</strong></p>
+      <ol>
+        <li><code>⏰ [inline] &lt;head&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;head&gt; 끝</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 끝</code></li>
+        <li>
+          <code>✅ [light-script.js] 실행 시작</code>
+          <span class="defer">← defer (파싱 완료 후)</span>
+        </li>
+        <li><code>✅ [light-script.js] 실행 완료</code></li>
+        <li><code>🎉 [DOMContentLoaded] 발생</code></li>
+        <li>
+          <code>📊 [analytics.js] 실행 시작</code>
+          <span class="async">← async (DOMContentLoaded 후)</span>
+        </li>
+        <li><code>📊 [analytics.js] 실행 완료</code></li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🎯 핵심 포인트</h2>
+      <ul>
+        <li>
+          <span class="defer">defer</span>와 <span class="async">async</span>는 함께
+          사용할 수 있습니다
+        </li>
+        <li>
+          각 스크립트는 독립적으로 동작합니다 (서로 영향을 주지 않음)
+        </li>
+        <li>
+          DOMContentLoaded는 <span class="defer">defer</span> 스크립트만 기다립니다
+        </li>
+        <li>
+          <span class="async">async</span> 스크립트는 DOMContentLoaded와 무관하게
+          실행됩니다
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>💡 실무 패턴</h2>
+      <pre style="background: white; color: #2d3748; border: 1px solid #cbd5e0;">
+&lt;head&gt;
+  &lt;!-- 메인 애플리케이션: defer (순서 보장) --&gt;
+  &lt;script defer src="/vendor.js"&gt;&lt;/script&gt;
+  &lt;script defer src="/app.js"&gt;&lt;/script&gt;
+
+  &lt;!-- 분석 및 추적: async (최대한 빨리) --&gt;
+  &lt;script async src="/analytics.js"&gt;&lt;/script&gt;
+  &lt;script async src="/sentry.js"&gt;&lt;/script&gt;
+
+  &lt;!-- 광고: async (독립적) --&gt;
+  &lt;script async src="/ads.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+      </pre>
+      <p>
+        이렇게 하면 메인 기능은 순서대로 안전하게 로드되고, 부가 기능은 최대한 빨리
+        로드됩니다.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>📊 다른 시나리오 비교</h2>
+      <ul>
+        <li><a href="./1-normal.html">1-normal.html</a>: 일반 스크립트 (blocking)</li>
+        <li>
+          <a href="./2-defer-light.html">2-defer-light.html</a>: defer 스크립트
+          (가벼운)
+        </li>
+        <li>
+          <a href="./3-defer-heavy.html">3-defer-heavy.html</a>: defer 스크립트
+          (무거운) ⭐
+        </li>
+        <li><a href="./4-async.html">4-async.html</a>: async 스크립트</li>
+        <li><strong>현재 페이지</strong>: 혼합 (defer + async)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>✅ 이벤트 상태</h2>
+      <p id="event-log">대기 중...</p>
+    </div>
+
+    <script>
+      console.log('⏰ [inline] <body> 끝 -', new Date().toISOString())
+    </script>
+  </body>
+</html>

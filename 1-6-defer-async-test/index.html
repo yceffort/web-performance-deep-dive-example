@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>defer/async 스크립트 실행 시점 테스트</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      h1 {
+        color: #2d3748;
+        border-bottom: 3px solid #4299e1;
+        padding-bottom: 10px;
+      }
+      .intro {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+      .test-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+      .test-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+      .test-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .test-card h2 {
+        margin-top: 0;
+        font-size: 18px;
+      }
+      .test-card.blocking {
+        border-left: 4px solid #e53e3e;
+      }
+      .test-card.defer-light {
+        border-left: 4px solid #38a169;
+      }
+      .test-card.defer-heavy {
+        border-left: 4px solid #d69e2e;
+      }
+      .test-card.async {
+        border-left: 4px solid #3182ce;
+      }
+      .test-card.mixed {
+        border-left: 4px solid #805ad5;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-right: 8px;
+      }
+      .badge.star {
+        background: #fef5e7;
+        color: #d69e2e;
+      }
+      .badge.basic {
+        background: #e6fffa;
+        color: #319795;
+      }
+      .instructions {
+        background: #edf2f7;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+      }
+      .instructions ol {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+      code {
+        background: #2d3748;
+        color: #f7fafc;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔬 defer/async 스크립트 실행 시점 테스트</h1>
+
+    <div class="intro">
+      <h2>📖 테스트 목적</h2>
+      <p>
+        이 테스트는 <strong>1-6-2-1절</strong>의 다음 내용을 검증합니다:
+      </p>
+      <blockquote
+        style="
+          margin: 15px 0;
+          padding: 15px;
+          background: #fffaf0;
+          border-left: 4px solid #d69e2e;
+        "
+      >
+        실제 사이트에서 이를 확인하려면 크롬 개발자 도구의 Performance 탭을 사용한다.
+        타임라인에서 "DOMContentLoaded" 마커를 찾고, 그 직전에 "Evaluate Script" 작업이
+        있는지 확인한다. 만약 <code>defer</code> 스크립트가 무겁다면, "Parse HTML" 완료와
+        "DOMContentLoaded" 사이에 긴 "Evaluate Script" 구간이 보일 것이다.
+      </blockquote>
+    </div>
+
+    <div class="instructions">
+      <h2>🔍 Performance 탭 사용 방법</h2>
+      <ol>
+        <li>아래 테스트 중 하나를 클릭하여 페이지 열기</li>
+        <li>크롬 개발자 도구 열기 (F12 또는 Cmd+Option+I)</li>
+        <li><strong>Performance 탭</strong> 선택</li>
+        <li>왼쪽 위 <strong>Record 버튼 (●)</strong> 클릭</li>
+        <li><strong>페이지 새로고침</strong> (Cmd+R 또는 Ctrl+R)</li>
+        <li>몇 초 후 <strong>Stop 버튼 (■)</strong> 클릭</li>
+        <li>타임라인에서 "Parse HTML", "Evaluate Script", "DOMContentLoaded" 확인</li>
+      </ol>
+    </div>
+
+    <h2>🧪 테스트 시나리오</h2>
+
+    <div class="test-grid">
+      <a href="./1-normal.html" class="test-card blocking">
+        <h2>🔴 1. 일반 스크립트 (Blocking)</h2>
+        <p><span class="badge basic">기본</span></p>
+        <p>일반 <code>&lt;script&gt;</code> 태그가 HTML 파싱을 블로킹하는 것을 확인</p>
+        <p style="font-size: 14px; color: #718096; margin-top: 10px;">
+          ✅ "Parse HTML" 중단<br />
+          ✅ "Evaluate Script" 실행<br />
+          ✅ "Parse HTML" 재개
+        </p>
+      </a>
+
+      <a href="./2-defer-light.html" class="test-card defer-light">
+        <h2>✅ 2. defer 스크립트 (가벼운)</h2>
+        <p><span class="badge basic">기본</span></p>
+        <p>defer 스크립트가 HTML 파싱 후 실행되는 것을 확인</p>
+        <p style="font-size: 14px; color: #718096; margin-top: 10px;">
+          ✅ HTML 파싱 중단 없음<br />
+          ✅ 파싱 완료 후 스크립트 실행<br />
+          ✅ DOMContentLoaded 직전
+        </p>
+      </a>
+
+      <a href="./3-defer-heavy.html" class="test-card defer-heavy">
+        <h2>⭐ 3. defer 스크립트 (무거운)</h2>
+        <p><span class="badge star">핵심 테스트</span></p>
+        <p>
+          무거운 defer 스크립트가 DOMContentLoaded를 지연시키는 것을 확인
+          <strong>(1-6-2-1절 핵심)</strong>
+        </p>
+        <p style="font-size: 14px; color: #718096; margin-top: 10px;">
+          ⭐ "Parse HTML" 완료와 "DOMContentLoaded" 사이의 긴 간격 확인<br />
+          ⭐ "Evaluate Script" 구간이 약 500ms
+        </p>
+      </a>
+
+      <a href="./4-async.html" class="test-card async">
+        <h2>📊 4. async 스크립트</h2>
+        <p><span class="badge basic">기본</span></p>
+        <p>async 스크립트가 다운로드 완료 즉시 실행되는 것을 확인</p>
+        <p style="font-size: 14px; color: #718096; margin-top: 10px;">
+          ✅ 다운로드 완료 즉시 실행<br />
+          ✅ 파싱 중단 가능<br />
+          ✅ DOMContentLoaded와 무관
+        </p>
+      </a>
+
+      <a href="./5-mixed.html" class="test-card mixed">
+        <h2>🎨 5. 혼합 (defer + async)</h2>
+        <p><span class="badge basic">실무 패턴</span></p>
+        <p>defer와 async를 함께 사용하는 실무 패턴 확인</p>
+        <p style="font-size: 14px; color: #718096; margin-top: 10px;">
+          ✅ defer: 앱 코드 (순서 보장)<br />
+          ✅ async: 분석 코드 (빠른 실행)<br />
+          ✅ 함께 사용 가능
+        </p>
+      </a>
+
+      <a href="./6-multiple-defer.html" class="test-card defer-light">
+        <h2>📦 6. 여러 개의 defer 스크립트</h2>
+        <p><span class="badge star">핵심 개념</span></p>
+        <p>여러 defer 스크립트의 병렬 다운로드 + 순차 실행 확인</p>
+        <p style="font-size: 14px; color: #718096; margin-top: 10px;">
+          ✅ 다운로드: 병렬 (plugin이 먼저 완료)<br />
+          ✅ 실행: 순차 (jquery → plugin → app)<br />
+          ✅ 의존성 안전하게 처리
+        </p>
+      </a>
+
+      <a href="./7-module-execution-order.html" class="test-card async">
+        <h2>🔷 7. 모듈 스크립트 실행 순서</h2>
+        <p><span class="badge star">1-6-5절</span></p>
+        <p>type="module" 스크립트의 defer 동작 확인 (일반 스크립트와 비교)</p>
+        <p style="font-size: 14px; color: #718096; margin-top: 10px;">
+          ✅ 모듈은 기본적으로 defer처럼 동작<br />
+          ✅ Inline → Regular → Module → DOMContentLoaded<br />
+          ✅ DOM 접근 안전 확인
+        </p>
+      </a>
+
+      <a href="./8-defer-module-mixed.html" class="test-card mixed">
+        <h2>🎯 8. defer와 module 혼용</h2>
+        <p><span class="badge star">1-6-5-3절 핵심</span></p>
+        <p>
+          defer와 module이 같은 큐에서 실행, async module은 독립적으로 실행되는 것
+          확인
+        </p>
+        <p style="font-size: 14px; color: #718096; margin-top: 10px;">
+          ✅ defer와 module은 같은 큐 (순서 보장)<br />
+          ✅ defer-a → module-b → defer-c 순서 실행<br />
+          ✅ async module은 다운로드 순 (독립적)
+        </p>
+      </a>
+    </div>
+
+    <div class="intro">
+      <h2>📊 예상 결과 요약</h2>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <tr style="background: #edf2f7;">
+          <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e0;">
+            시나리오
+          </th>
+          <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e0;">
+            파싱 중단
+          </th>
+          <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e0;">
+            실행 시점
+          </th>
+          <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e0;">
+            DOMContentLoaded
+          </th>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">일반 스크립트</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">⛔ 중단됨</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">파싱 중</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">실행 후 발생</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">defer (가벼운)</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">✅ 없음</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">파싱 완료 후</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">실행 직후 발생</td>
+        </tr>
+        <tr style="background: #fffaf0;">
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            <strong>defer (무거운) ⭐</strong>
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">✅ 없음</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">파싱 완료 후</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            <strong>실행 완료까지 대기 (1초 지연)</strong>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">async</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">⚠️ 가능</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">다운로드 완료 즉시</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">대기 안 함</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">혼합 (defer+async)</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            ⚠️ async만 가능
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">각각 독립적</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">defer만 대기</td>
+        </tr>
+        <tr style="background: #f0fff4;">
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            <strong>여러 defer ⭐</strong>
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">✅ 없음</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            파싱 완료 후, HTML 순서대로
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            <strong>모든 스크립트 실행 완료 후 발생</strong>
+          </td>
+        </tr>
+        <tr style="background: #e6f7ff;">
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            <strong>모듈 스크립트 (type="module") ⭐</strong>
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">✅ 없음</td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            <strong>파싱 완료 후 (defer와 동일)</strong>
+          </td>
+          <td style="padding: 10px; border: 1px solid #cbd5e0;">
+            실행 완료 후 발생
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="intro">
+      <h2>🎯 핵심 포인트</h2>
+      <ul>
+        <li>
+          <strong>일반 스크립트</strong>: 다운로드 + 파싱 + 실행이 완료될 때까지 HTML
+          파싱 멈춤
+        </li>
+        <li>
+          <strong>defer (가벼운)</strong>: HTML 파싱 완료 후 실행, DOMContentLoaded를 거의
+          지연시키지 않음
+        </li>
+        <li>
+          <strong>defer (무거운) ⭐</strong>: HTML 파싱 완료 후 실행, 하지만
+          DOMContentLoaded를 지연시킴
+        </li>
+        <li>
+          <strong>async</strong>: 다운로드 완료 즉시 실행, DOMContentLoaded와 무관
+        </li>
+        <li>
+          <strong>혼합</strong>: defer는 앱 코드에, async는 분석/광고 코드에 사용
+        </li>
+        <li>
+          <strong>여러 defer ⭐</strong>: 병렬 다운로드 + 순차 실행으로 의존성 안전하게
+          처리
+        </li>
+        <li>
+          <strong>모듈 스크립트 (type="module") ⭐</strong>: 기본적으로 defer처럼 동작,
+          import/export 지원, strict mode 자동 적용
+        </li>
+      </ul>
+    </div>
+
+    <div class="intro">
+      <h2>📚 참고 자료</h2>
+      <ul>
+        <li>
+          <a
+            href="https://html.spec.whatwg.org/multipage/scripting.html#the-script-element"
+            target="_blank"
+            >HTML Spec: script element</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#defer"
+            target="_blank"
+            >MDN: defer attribute</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#async"
+            target="_blank"
+            >MDN: async attribute</a
+          >
+        </li>
+      </ul>
+    </div>
+
+    <div class="intro" style="background: #f0fff4; border-left: 4px solid #38a169;">
+      <h2>✅ 로컬 서버 실행 방법</h2>
+      <p>ES 모듈과 CORS 제약을 피하기 위해 로컬 서버 실행이 필요합니다.</p>
+      <pre
+        style="
+          background: #2d3748;
+          color: #f7fafc;
+          padding: 15px;
+          border-radius: 4px;
+          overflow-x: auto;
+        "
+      >
+# 이 디렉토리에서 실행
+npx serve .
+
+# 또는
+python3 -m http.server 8000
+
+# 또는
+php -S localhost:8000</pre
+      >
+      <p>그 다음 브라우저에서 <code>http://localhost:3000</code> 접속</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2. defer 스크립트 (가벼운)</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      h1 {
+        color: #38a169;
+      }
+      pre {
+        background: #1a202c;
+        color: #f7fafc;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      .info {
+        background: #f0fff4;
+        border-left: 4px solid #38a169;
+        padding: 15px;
+        margin: 15px 0;
+      }
+      code {
+        background: #edf2f7;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Courier New', monospace;
+      }
+    </style>
+
+    <script>
+      console.log('⏰ [inline] <head> 시작 -', new Date().toISOString())
+    </script>
+
+    <!-- ✅ defer 스크립트 - HTML 파싱 블로킹 안 함 -->
+    <script defer src="./scripts/light-script.js"></script>
+
+    <script>
+      console.log('⏰ [inline] <head> 끝 (defer는 블로킹 안 함) -', new Date().toISOString())
+
+      // DOMContentLoaded 이벤트 리스너
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎉 [DOMContentLoaded] 발생 -', new Date().toISOString())
+
+        const eventLog = document.getElementById('event-log')
+        if (eventLog) {
+          eventLog.textContent = '✅ DOMContentLoaded 발생 완료'
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <script>
+      console.log('⏰ [inline] <body> 시작 -', new Date().toISOString())
+    </script>
+
+    <div class="card">
+      <h1>✅ 시나리오 2: defer 스크립트 (가벼운)</h1>
+      <p><code>&lt;script defer&gt;</code> 태그는 HTML 파싱을 블로킹하지 않습니다.</p>
+      <p>HTML 파싱 완료 후, DOMContentLoaded 발생 직전에 실행됩니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>📋 테스트 방법</h2>
+      <ol>
+        <li>크롬 개발자 도구 열기 (F12)</li>
+        <li><strong>Performance 탭</strong> 선택</li>
+        <li>왼쪽 위 <strong>Record 버튼 (●)</strong> 클릭</li>
+        <li><strong>페이지 새로고침</strong> (Cmd+R 또는 Ctrl+R)</li>
+        <li>몇 초 후 <strong>Stop 버튼 (■)</strong> 클릭</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🔍 확인 사항</h2>
+      <div class="info">
+        <strong>✅ defer 동작 확인:</strong>
+        <ul>
+          <li>"Parse HTML"이 중단 없이 연속으로 진행됨</li>
+          <li>HTML 파싱 완료 후 "Evaluate Script - light-script.js" 실행</li>
+          <li>
+            <strong>"DOMContentLoaded" 마커 바로 직전에 "Evaluate Script"가 있음</strong>
+          </li>
+          <li>스크립트 실행이 빠르므로 (~10ms) 간격이 거의 없음</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 예상 타임라인</h2>
+      <pre>
+Main Thread:
+├─ Parse HTML (0~500ms) ← 중단 없음
+├─ Evaluate Script - light-script.js (500~510ms) ← 파싱 완료 후
+└─ DOMContentLoaded (510ms) ← 스크립트 실행 직후
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>📝 콘솔 출력</h2>
+      <p>콘솔에서 다음 순서로 로그가 출력됩니다:</p>
+      <ol>
+        <li><code>⏰ [inline] &lt;head&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;head&gt; 끝</code> (defer는 블로킹 안 함)</li>
+        <li><code>⏰ [inline] &lt;body&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 끝</code></li>
+        <li>
+          <code>✅ [light-script.js] 실행 시작</code> (HTML 파싱 완료 후)
+        </li>
+        <li><code>✅ [light-script.js] 실행 완료 - ~10ms</code></li>
+        <li><code>🎉 [DOMContentLoaded] 발생</code> (스크립트 실행 직후)</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🎯 핵심 포인트</h2>
+      <ul>
+        <li>defer 스크립트는 HTML 파싱을 블로킹하지 않습니다</li>
+        <li>다운로드는 백그라운드에서 진행됩니다</li>
+        <li>실행은 HTML 파싱 완료 후, DOMContentLoaded 발생 전입니다</li>
+        <li>가벼운 스크립트는 DOMContentLoaded를 거의 지연시키지 않습니다</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>✅ 이벤트 상태</h2>
+      <p id="event-log">대기 중...</p>
+    </div>
+
+    <script>
+      console.log('⏰ [inline] <body> 끝 -', new Date().toISOString())
+    </script>
+  </body>
+</html>

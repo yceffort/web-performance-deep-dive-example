@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Partytown 적용 전 - 일반 Google Analytics</title>
+
+    <!-- Google Analytics (일반 방식) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', 'G-XXXXXXXXXX')
+    </script>
+
+    <!-- 무거운 서드파티 스크립트 (메인 스레드 차단) -->
+    <script src="/heavy-third-party.js"></script>
+
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .status {
+        background: #f0f0f0;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+      .warning {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      code {
+        background: #f5f5f5;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔴 Partytown 적용 전</h1>
+
+    <div class="warning">
+      <strong>⚠️ 주의:</strong> 이 페이지는 Google Analytics 스크립트가 메인 스레드에서 실행됩니다.
+      Performance 탭에서 메인 스레드 차단을 확인할 수 있습니다.
+    </div>
+
+    <div class="status">
+      <h2>현재 상태</h2>
+      <p>✅ Google Analytics: 일반 방식 (메인 스레드)</p>
+      <p>📊 크롬 개발자 도구 > Performance 탭에서 확인:</p>
+      <ul>
+        <li>Main 트랙에서 <code>gtag.js</code> 실행 확인 가능</li>
+        <li>메인 스레드 차단 시간 측정</li>
+        <li>Total Blocking Time (TBT) 확인</li>
+      </ul>
+    </div>
+
+    <h2>테스트 방법</h2>
+    <ol>
+      <li>크롬 개발자 도구를 엽니다 (F12)</li>
+      <li>Performance 탭으로 이동</li>
+      <li>녹화 버튼을 누르고 페이지를 새로고침 (Ctrl+R)</li>
+      <li>Main 트랙에서 <code>gtag.js</code> 실행 시간 확인</li>
+      <li>Lighthouse를 실행하여 Performance 점수 확인</li>
+    </ol>
+
+    <button onclick="sendEvent()">이벤트 전송 테스트</button>
+
+    <h2>비교하기</h2>
+    <p><a href="index-after.html">→ Partytown 적용 후 페이지로 이동</a></p>
+
+    <script>
+      function sendEvent() {
+        if (typeof gtag === 'function') {
+          gtag('event', 'button_click', {
+            event_category: 'engagement',
+            event_label: 'test_button',
+          })
+          alert('이벤트가 전송되었습니다!')
+        } else {
+          alert('Google Analytics가 로드되지 않았습니다.')
+        }
+      }
+
+      // 페이지 로드 시간 측정
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const perfData = performance.getEntriesByType('navigation')[0]
+          console.log('🔴 Partytown 적용 전:')
+          console.log('  - DOM Content Loaded:', perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart, 'ms')
+          console.log('  - Load Complete:', perfData.loadEventEnd - perfData.loadEventStart, 'ms')
+        }, 0)
+      })
+    </script>
+  </body>
+</html>

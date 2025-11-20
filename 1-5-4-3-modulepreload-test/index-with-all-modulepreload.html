@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>modulepreload 모든 의존성 명시 테스트</title>
+
+    <!-- 모든 모듈을 명시적으로 modulepreload 선언 -->
+    <link rel="modulepreload" href="/modules/chart.js" />
+    <link rel="modulepreload" href="/modules/chart-utils.js" />
+    <link rel="modulepreload" href="/modules/chart-axis.js" />
+
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+      }
+      .info {
+        background: #d4edda;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>modulepreload 모든 의존성 명시 테스트</h1>
+
+    <div class="info">
+      <h2>테스트 목적</h2>
+      <p>모든 모듈을 명시적으로 modulepreload했을 때의 동작 확인</p>
+
+      <h3>확인 방법</h3>
+      <ol>
+        <li>개발자 도구의 Network 탭 열기</li>
+        <li>Disable cache 체크</li>
+        <li>페이지 새로고침</li>
+        <li>JS 파일 필터 적용</li>
+        <li>
+          페이지 로드 시점에 chart.js, chart-utils.js, chart-axis.js 세 파일 모두
+          즉시 다운로드되어야 함
+        </li>
+        <li>버튼 클릭 시 이미 다운로드된 모듈을 재사용</li>
+      </ol>
+    </div>
+
+    <button id="loadChart">Chart 모듈 import 하기</button>
+
+    <h2>콘솔 로그</h2>
+    <pre id="log"></pre>
+
+    <script type="module">
+      const logElement = document.getElementById('log')
+      const originalLog = console.log
+
+      console.log = function (...args) {
+        originalLog.apply(console, args)
+        logElement.textContent += args.join(' ') + '\n'
+      }
+
+      console.log('=== 페이지 로드 완료 ===')
+      console.log('모든 모듈을 modulepreload로 선언했으므로,')
+      console.log('chart.js, chart-utils.js, chart-axis.js 모두 미리 다운로드됨')
+      console.log('Network 탭을 확인하세요!')
+      console.log('')
+
+      document.getElementById('loadChart').addEventListener('click', async () => {
+        console.log('=== Chart 모듈 import 시작 ===')
+
+        const { Chart } = await import('./modules/chart.js')
+
+        console.log('=== Chart 모듈 import 완료 ===')
+        console.log('')
+
+        const chart = new Chart([1, 2, 3, 4, 5])
+        chart.render()
+      })
+    </script>
+  </body>
+</html>

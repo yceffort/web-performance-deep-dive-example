@@ -1,0 +1,214 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CommentForm from '../components/CommentForm';
+---
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Astro Islands Architecture 데모</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .section {
+      margin-bottom: 3rem;
+    }
+
+    .static-section {
+      background: #f5f5f5;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 2px solid #ccc;
+    }
+
+    .static-badge {
+      display: inline-block;
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      border: 2px solid #999;
+      font-weight: 600;
+      color: #555;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    article h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    article p {
+      margin-bottom: 1rem;
+      line-height: 1.8;
+      color: #555;
+    }
+
+    .info-box {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .info-box h3 {
+      color: #856404;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-box p {
+      color: #856404;
+      margin: 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+
+    .stat-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card .number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #2196f3;
+    }
+
+    .stat-card .label {
+      font-size: 0.85rem;
+      color: #999;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- 정적 컴포넌트: Header -->
+  <Header />
+
+  <main class="main-content">
+    <div class="info-box">
+      <h3>🎯 개발자 도구로 확인하세요!</h3>
+      <p>
+        F12를 눌러 개발자 도구를 열고 Network 탭에서 JavaScript 파일들을 확인해보세요.
+        정적 영역(Header, 본문, Footer)은 JavaScript가 없고, CommentForm 아일랜드만 JavaScript를 로드합니다.
+      </p>
+    </div>
+
+    <!-- 정적 섹션: 본문 -->
+    <div class="section static-section">
+      <div class="static-badge">
+        📄 정적 HTML | ❌ 하이드레이션 없음 | 📦 JavaScript 0KB
+      </div>
+
+      <article>
+        <h1>Astro Islands Architecture 실전 데모</h1>
+        <p class="subtitle">정적 콘텐츠와 인터랙티브 아일랜드의 조화</p>
+
+        <h2>Islands Architecture란?</h2>
+        <p>
+          전통적인 SPA 방식에서는 페이지의 모든 컴포넌트가 JavaScript로 하이드레이션됩니다.
+          헤더, 본문, 푸터 같은 정적 콘텐츠까지 모두 React로 실행되어 불필요한 JavaScript를 다운로드하고
+          실행해야 합니다.
+        </p>
+
+        <p>
+          Astro Islands는 이 문제를 해결합니다. 정적 콘텐츠는 HTML만 전송하고,
+          사용자 인터랙션이 필요한 부분만 선택적으로 JavaScript를 로드하여 하이드레이션합니다.
+          마치 바다(정적 HTML) 위에 떠있는 섬(인터랙티브 컴포넌트)처럼 동작한다고 해서 "Islands"라는 이름이 붙었습니다.
+        </p>
+
+        <h2>이 페이지의 구조</h2>
+        <p>
+          지금 보고 있는 이 페이지는 다음과 같이 구성되어 있습니다:
+        </p>
+
+        <ul style="margin-left: 2rem; margin-bottom: 1rem;">
+          <li><strong>Header</strong>: 정적 Astro 컴포넌트 (JavaScript 0KB)</li>
+          <li><strong>본문</strong>: 정적 HTML (JavaScript 0KB)</li>
+          <li><strong>CommentForm</strong>: 인터랙티브 React 아일랜드 (JavaScript 포함)</li>
+          <li><strong>Footer</strong>: 정적 Astro 컴포넌트 (JavaScript 0KB)</li>
+        </ul>
+
+        <p>
+          아래로 스크롤하면 댓글 작성 폼이 보입니다. 이것이 유일한 "인터랙티브 아일랜드"입니다.
+          이름을 입력하고 댓글을 작성해보세요. 이 부분만 React로 동작하며, 상태 관리와 이벤트 처리가 가능합니다.
+        </p>
+      </article>
+
+      <div class="stats">
+        <div class="stat-card">
+          <h3>전통적 React SPA</h3>
+          <div class="number">100KB</div>
+          <div class="label">모든 컴포넌트 하이드레이션</div>
+        </div>
+        <div class="stat-card">
+          <h3>Astro Islands (이 페이지)</h3>
+          <div class="number">~40KB</div>
+          <div class="label">필요한 부분만 하이드레이션</div>
+        </div>
+        <div class="stat-card">
+          <h3>JavaScript 감소</h3>
+          <div class="number">60%</div>
+          <div class="label">다운로드 & 실행 시간 절약</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 인터랙티브 아일랜드: CommentForm -->
+    <div class="section">
+      <CommentForm client:load />
+    </div>
+  </main>
+
+  <!-- 정적 컴포넌트: Footer -->
+  <Footer />
+</body>
+</html>

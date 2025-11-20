@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preload 'as' 속성 테스트</title>
+
+  <!-- 테스트 1: as 속성 없는 preload (이중 다운로드 또는 경고 예상) -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js">
+  <!-- as 속성이 없으면 브라우저가 콘텐츠 타입을 추측하거나 경고를 표시함 -->
+
+  <!-- 테스트 2: as 속성 있는 preload (정상 동작) -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" as="script">
+
+  <!-- 테스트 3: as="style" - Highest 우선순위 확인 -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style">
+
+  <!-- 테스트 4: as="font" WITH crossorigin (정상 동작) -->
+  <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- 테스트 5: as="font" WITHOUT crossorigin (이중 다운로드 예상) -->
+  <link rel="preload" href="https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVI.woff2" as="font" type="font/woff2">
+
+  <!-- 테스트 6: as="image" - Medium 우선순위 확인 -->
+  <link rel="preload" href="https://placehold.co/600x400" as="image">
+
+  <style>
+    /* 테스트용 폰트 선언 */
+    @font-face {
+      font-family: 'Roboto';
+      src: url('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2') format('woff2');
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Open Sans';
+      src: url('https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVI.woff2') format('woff2');
+      font-display: swap;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .font-roboto {
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .font-opensans {
+      font-family: 'Open Sans', sans-serif;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    .test-section h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    code {
+      background: #e8e8e8;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    .warning {
+      background: #fff3cd;
+      border-color: #ffc107;
+      color: #856404;
+    }
+    .success {
+      background: #d4edda;
+      border-color: #28a745;
+      color: #155724;
+    }
+    .instructions {
+      background: #e7f3ff;
+      padding: 15px;
+      border-left: 4px solid #004085;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    th {
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Preload 'as' 속성 테스트</h1>
+
+  <div class="instructions">
+    <h2>테스트 방법</h2>
+    <ol>
+      <li><strong>Chrome DevTools를 엽니다</strong> (F12 또는 Cmd+Option+I)</li>
+      <li><strong>Network 탭</strong>으로 이동합니다</li>
+      <li>Network 탭에서 <strong>Disable cache</strong>를 체크합니다</li>
+      <li>컬럼 헤더를 우클릭하여 <strong>Priority</strong> 컬럼을 활성화합니다</li>
+      <li>페이지를 <strong>새로고침</strong> (Cmd+R 또는 Ctrl+R)합니다</li>
+      <li>각 리소스의 Priority 값을 확인합니다</li>
+      <li><strong>중요:</strong> Console 탭에서 경고 메시지를 확인합니다!</li>
+      <li><strong>폰트 테스트:</strong> Network 탭에서 다음 폰트들이 몇 번씩 나타나는지 확인:
+        <ul>
+          <li><strong>KFOmCnqEu92Fr1Mu4mxK.woff2</strong> (Roboto, crossorigin 있음) - 1번 예상</li>
+          <li><strong>memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVI.woff2</strong> (Open Sans, crossorigin 없음) - 2번 예상</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+  <h2>테스트 케이스</h2>
+
+  <div class="test-section warning">
+    <h3>❌ 테스트 1: as 속성 없는 preload (경고 발생)</h3>
+    <p><code>&lt;link rel="preload" href="lodash.min.js"&gt;</code></p>
+    <p><strong>예상 결과:</strong></p>
+    <ul>
+      <li><strong>콘솔에 경고 메시지 표시:</strong> "&lt;link rel=preload&gt; must have a valid `as` value"</li>
+      <li>브라우저가 리소스를 제대로 매칭하지 못할 수 있음</li>
+      <li>잘못된 우선순위로 로드되거나 이중 다운로드가 발생할 수 있음</li>
+      <li>최신 Chrome은 Content-Type을 보고 추측할 수도 있지만, <code>as</code> 속성은 여전히 필수</li>
+    </ul>
+  </div>
+
+  <div class="test-section success">
+    <h3>✅ 테스트 2: as="script" 있는 preload (정상 동작)</h3>
+    <p><code>&lt;link rel="preload" href="jquery.min.js" as="script"&gt;</code></p>
+    <p><strong>예상 결과:</strong></p>
+    <ul>
+      <li>jquery.min.js가 <strong>1번만</strong> 다운로드됩니다</li>
+      <li>Priority: <strong>High</strong></li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h3>테스트 3: as="style" (Highest 우선순위)</h3>
+    <p><code>&lt;link rel="preload" href="bootstrap.min.css" as="style"&gt;</code></p>
+    <p><strong>예상 Priority:</strong> <strong>Highest</strong></p>
+  </div>
+
+  <div class="test-section success">
+    <h3>✅ 테스트 4: as="font" WITH crossorigin (정상 동작)</h3>
+    <p><code>&lt;link rel="preload" href="roboto.woff2" as="font" crossorigin&gt;</code></p>
+    <p><strong>예상 결과:</strong></p>
+    <ul>
+      <li>Roboto 폰트가 <strong>1번만</strong> 다운로드됩니다</li>
+      <li>Priority: <strong>High</strong></li>
+      <li>CORS 요청으로 올바르게 로드됨</li>
+    </ul>
+    <p class="font-roboto" style="font-size: 18px; margin-top: 10px;">
+      📝 이 텍스트는 Roboto 폰트를 사용합니다 (crossorigin 있음)
+    </p>
+  </div>
+
+  <div class="test-section warning">
+    <h3>❌ 테스트 5: as="font" WITHOUT crossorigin (이중 다운로드 예상)</h3>
+    <p><code>&lt;link rel="preload" href="opensans.woff2" as="font"&gt;</code> (crossorigin 없음)</p>
+    <p><strong>예상 결과:</strong></p>
+    <ul>
+      <li>Open Sans 폰트가 Network 탭에 <strong>2번</strong> 나타날 수 있습니다</li>
+      <li>첫 번째: preload (non-CORS 요청)</li>
+      <li>두 번째: @font-face에서 실제 사용 (CORS 요청)</li>
+      <li><strong>⚠️ 중요:</strong> Network 탭에서 Open Sans 폰트가 몇 번 나타나는지 확인!</li>
+    </ul>
+    <p class="font-opensans" style="font-size: 18px; margin-top: 10px;">
+      📝 이 텍스트는 Open Sans 폰트를 사용합니다 (crossorigin 없음 - 이중 다운로드?)
+    </p>
+  </div>
+
+  <div class="test-section">
+    <h3>테스트 6: as="image"</h3>
+    <p><code>&lt;link rel="preload" href="image.jpg" as="image"&gt;</code></p>
+    <p><strong>예상 Priority:</strong> <strong>Low</strong> (실제 테스트에서 확인됨)</p>
+  </div>
+
+  <h2>예상 결과 요약</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>as 속성 값</th>
+        <th>예상 Priority</th>
+        <th>비고</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>as="style"</code></td>
+        <td><strong>Highest</strong></td>
+        <td>렌더 블로킹 리소스</td>
+      </tr>
+      <tr>
+        <td><code>as="script"</code></td>
+        <td><strong>High</strong></td>
+        <td>파싱 블로킹 가능</td>
+      </tr>
+      <tr>
+        <td><code>as="font"</code></td>
+        <td><strong>High</strong></td>
+        <td>FOIT/FOUT 방지</td>
+      </tr>
+      <tr>
+        <td><code>as="image"</code></td>
+        <td><strong>Medium</strong></td>
+        <td>뷰포트 내 이미지 수준</td>
+      </tr>
+      <tr style="background: #fff3cd;">
+        <td><strong>as 속성 없음</strong></td>
+        <td><strong>알 수 없음</strong></td>
+        <td><strong>⚠️ 콘솔 경고 발생, 잘못된 우선순위</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="test-section warning">
+    <h3>⚠️ 주의사항</h3>
+    <ul>
+      <li><strong>as 속성은 필수입니다!</strong> 빠뜨리면 콘솔 경고가 발생하고, 잘못된 우선순위로 로드되거나 이중 다운로드가 발생할 수 있습니다.</li>
+      <li>폰트의 경우 <code>crossorigin</code> 속성도 필수입니다 (CORS 요청).</li>
+      <li>잘못된 <code>as</code> 값을 사용해도 리소스 매칭 실패로 이중 다운로드가 발생할 수 있습니다.</li>
+    </ul>
+  </div>
+
+  <!-- 실제 스크립트 로드 (이중 다운로드 테스트를 위해) -->
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+
+  <!-- 실제 스타일 로드 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+  <!-- 실제 이미지 로드 -->
+  <img src="https://placehold.co/600x400" alt="테스트 이미지" style="max-width: 100%; margin: 20px 0;">
+
+  <script>
+    // 로드 완료 확인
+    window.addEventListener('load', () => {
+      console.log('✅ 모든 리소스 로드 완료');
+      console.log('📊 Chrome DevTools Network 탭에서 Priority 컬럼을 확인하세요!');
+      console.log('⚠️  Console 탭에서 as 속성 관련 경고를 확인하세요!');
+
+      // lodash와 jQuery가 로드되었는지 확인
+      if (typeof _ !== 'undefined') {
+        console.log('✅ Lodash 로드됨 (버전:', _.VERSION, ')');
+      }
+      if (typeof jQuery !== 'undefined') {
+        console.log('✅ jQuery 로드됨 (버전:', jQuery.fn.jquery, ')');
+      }
+    });
+  </script>
+</body>
+</html>

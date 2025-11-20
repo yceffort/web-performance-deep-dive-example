@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preload 경고 테스트</title>
+
+  <!-- 테스트 1: 즉시 사용하는 preload (경고 없어야 함) -->
+  <link rel="preload" href="https://placehold.co/300x300/ff0000/ffffff?text=Immediate" as="image">
+
+  <!-- 테스트 2: 3초 후에 사용하는 preload (경고 발생?) -->
+  <link rel="preload" href="https://placehold.co/300x300/00ff00/ffffff?text=After3Sec" as="image">
+
+  <!-- 테스트 3: 5초 후에 사용하는 preload (경고 발생?) -->
+  <link rel="preload" href="https://placehold.co/300x300/0000ff/ffffff?text=After5Sec" as="image">
+
+  <!-- 테스트 4: 10초 후에 사용하는 preload (경고 발생?) -->
+  <link rel="preload" href="https://placehold.co/300x300/ff00ff/ffffff?text=After10Sec" as="image">
+
+  <!-- 테스트 5: 전혀 사용하지 않는 preload (경고 발생?) -->
+  <link rel="preload" href="https://placehold.co/300x300/ffff00/ffffff?text=NeverUsed" as="image">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .test-section h2 {
+      margin-top: 0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      margin: 10px 0;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      background-color: #f0f0f0;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .warning {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+    .success {
+      color: #388e3c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Preload 경고 테스트</h1>
+
+  <p><strong>목적:</strong> preload한 리소스를 특정 시간 이내에 사용하지 않으면 Chrome이 콘솔에 경고를 표시하는지 검증</p>
+
+  <p><strong>테스트 방법:</strong></p>
+  <ol>
+    <li>Chrome DevTools 콘솔을 열어주세요 (F12 → Console 탭)</li>
+    <li>페이지를 새로고침하고 10초 이상 기다리세요</li>
+    <li>콘솔에서 "The resource was preloaded using link preload but not used within a few seconds" 경고를 확인하세요</li>
+    <li>10초 후 이미지가 표시되면 경고가 사라지지 않고 남아있는 것을 확인하세요</li>
+  </ol>
+
+  <div class="test-section">
+    <h2>테스트 1: 즉시 사용 (페이지 로드 시)</h2>
+    <div class="status">상태: 이미지가 즉시 표시됩니다</div>
+    <img src="https://placehold.co/300x300/ff0000/ffffff?text=Immediate" alt="즉시 로드">
+  </div>
+
+  <div class="test-section">
+    <h2>테스트 2: 3초 후 사용</h2>
+    <div class="status" id="status-3sec">상태: 3초 후 이미지가 표시됩니다...</div>
+    <div id="container-3sec"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>테스트 3: 5초 후 사용</h2>
+    <div class="status" id="status-5sec">상태: 5초 후 이미지가 표시됩니다...</div>
+    <div id="container-5sec"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>테스트 4: 10초 후 사용</h2>
+    <div class="status" id="status-10sec">상태: 10초 후 이미지가 표시됩니다...</div>
+    <div id="container-10sec"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>테스트 5: 전혀 사용하지 않음</h2>
+    <div class="status">상태: 이 이미지는 preload했지만 전혀 사용하지 않습니다</div>
+    <button onclick="showNeverUsedImage()">이미지 표시 (클릭)</button>
+    <div id="container-never"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>예상 결과 (Chrome 142 기준)</h2>
+    <ul>
+      <li class="success">✅ 테스트 1: 경고 없음 (즉시 사용)</li>
+      <li class="success">✅ 테스트 2: 경고 없음 (3초는 허용 범위)</li>
+      <li class="success">✅ 테스트 3: 경고 없음 (5초는 허용 범위)</li>
+      <li class="warning">⚠️ 테스트 4: 경고 발생 (10초는 "a few seconds" 초과)</li>
+      <li class="warning">⚠️ 테스트 5: 경고 발생 (전혀 사용하지 않음)</li>
+    </ul>
+    <p style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 3px;">
+      <strong>결론:</strong> Chrome은 preload한 리소스를 "수 초(a few seconds)" 이내에 사용해야 한다고 경고한다.
+      실험 결과 5초까지는 허용되지만 10초는 너무 늦다. 정확한 임계값은 5초와 10초 사이 어딘가에 있는 것으로 보인다.
+    </p>
+  </div>
+
+  <script>
+    console.log('=== Preload 경고 테스트 시작 ===');
+    console.log('페이지 로드 시간:', new Date().toISOString());
+
+    // 테스트 2: 3초 후 이미지 표시
+    setTimeout(() => {
+      console.log('3초 경과 - 이미지 표시');
+      const img = document.createElement('img');
+      img.src = 'https://placehold.co/300x300/00ff00/ffffff?text=After3Sec';
+      img.alt = '3초 후 로드';
+      document.getElementById('container-3sec').appendChild(img);
+      document.getElementById('status-3sec').textContent = '상태: 이미지 표시됨 (3초 경과)';
+      document.getElementById('status-3sec').className = 'status success';
+    }, 3000);
+
+    // 테스트 3: 5초 후 이미지 표시
+    setTimeout(() => {
+      console.log('5초 경과 - 이미지 표시');
+      const img = document.createElement('img');
+      img.src = 'https://placehold.co/300x300/0000ff/ffffff?text=After5Sec';
+      img.alt = '5초 후 로드';
+      document.getElementById('container-5sec').appendChild(img);
+      document.getElementById('status-5sec').textContent = '상태: 이미지 표시됨 (5초 경과)';
+      document.getElementById('status-5sec').className = 'status success';
+    }, 5000);
+
+    // 테스트 4: 10초 후 이미지 표시
+    setTimeout(() => {
+      console.log('10초 경과 - 이미지 표시');
+      const img = document.createElement('img');
+      img.src = 'https://placehold.co/300x300/ff00ff/ffffff?text=After10Sec';
+      img.alt = '10초 후 로드';
+      document.getElementById('container-10sec').appendChild(img);
+      document.getElementById('status-10sec').textContent = '상태: 이미지 표시됨 (10초 경과)';
+      document.getElementById('status-10sec').className = 'status success';
+    }, 10000);
+
+    // 테스트 5: 버튼 클릭 시 표시
+    function showNeverUsedImage() {
+      console.log('버튼 클릭 - 사용하지 않던 이미지 표시');
+      const img = document.createElement('img');
+      img.src = 'https://placehold.co/300x300/ffff00/ffffff?text=NeverUsed';
+      img.alt = '사용하지 않던 이미지';
+      document.getElementById('container-never').appendChild(img);
+    }
+
+    // 콘솔에 안내 메시지
+    console.log('테스트 준비 완료. 콘솔에서 경고 메시지를 확인하세요.');
+    console.log('특히 다음 패턴의 경고를 찾아보세요:');
+    console.log('- "preload" 관련 warning');
+    console.log('- "not used within" 관련 메시지');
+    console.log('- "resource was preloaded" 관련 메시지');
+  </script>
+</body>
+</html>

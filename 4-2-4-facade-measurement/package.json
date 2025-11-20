@@ -1,0 +1,13 @@
+{
+  "name": "youtube-facade-measurement",
+  "version": "1.0.0",
+  "description": "YouTube iframe vs Facade performance measurement",
+  "scripts": {
+    "measure": "node measure.js",
+    "server": "http-server -p 8888"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "puppeteer": "^21.0.0"
+  }
+}

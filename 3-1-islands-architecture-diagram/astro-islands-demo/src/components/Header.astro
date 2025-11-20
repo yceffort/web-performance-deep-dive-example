@@ -1,0 +1,53 @@
+---
+// Header.astro - 정적 컴포넌트 (JavaScript 0KB)
+---
+
+<header class="header">
+  <div class="container">
+    <div class="logo">🚀 My Blog</div>
+    <nav class="nav">
+      <a href="/">홈</a>
+      <a href="/about">소개</a>
+      <a href="/blog">블로그</a>
+      <a href="/contact">연락</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+  }
+
+  .nav {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .nav a {
+    color: white;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .nav a:hover {
+    opacity: 0.8;
+  }
+</style>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube Facade - 가벼운 버전</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      .instructions {
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        cursor: pointer;
+      }
+      .youtube-facade {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+      }
+      .youtube-facade::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 68px;
+        height: 48px;
+        background: #f00;
+        border-radius: 14px;
+        transition: opacity 0.3s;
+      }
+      .play-button::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-40%, -50%);
+        width: 0;
+        height: 0;
+        border-left: 20px solid #fff;
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+      }
+      .youtube-facade:hover .play-button {
+        opacity: 0.9;
+      }
+      .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>YouTube Facade - 가벼운 버전</h1>
+
+    <div class="instructions">
+      <h2>측정 방법:</h2>
+      <ol>
+        <li>크롬 개발자 도구 열기 (F12)</li>
+        <li>Network 탭으로 이동</li>
+        <li>페이지 새로고침 (Cmd/Ctrl + R)</li>
+        <li><strong>재생 버튼을 클릭하지 않고</strong> 초기 로드만 측정</li>
+        <li>하단의 transferred 크기 확인</li>
+      </ol>
+      <p>
+        <strong>측정 조건:</strong> 시크릿 모드, 캐시 비활성화, Fast 3G
+        네트워크
+      </p>
+      <p><strong>비교:</strong> 재생 버튼 클릭 후 추가 로드되는 크기 확인</p>
+    </div>
+
+    <div class="video-container">
+      <div
+        class="youtube-facade"
+        id="youtube-facade"
+        data-video-id="dQw4w9WgXcQ"
+      >
+        <div class="play-button"></div>
+      </div>
+    </div>
+
+    <script>
+      const facade = document.getElementById('youtube-facade');
+      const videoId = facade.dataset.videoId;
+
+      facade.style.backgroundImage = `url(https://img.youtube.com/vi/${videoId}/maxresdefault.jpg)`;
+
+      let initialLoadSize = 0;
+      window.addEventListener('load', () => {
+        const entries = performance.getEntriesByType('resource');
+        entries.forEach((resource) => {
+          initialLoadSize += resource.transferSize;
+        });
+
+        console.log('=== 초기 로드 측정 ===');
+        console.log(
+          `초기 전송 크기: ${(initialLoadSize / 1024).toFixed(2)} KB`
+        );
+        console.log('YouTube iframe 로드 안됨 (Facade만 렌더링)');
+      });
+
+      facade.addEventListener('click', () => {
+        const beforeClick = performance.now();
+
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+        iframe.title = 'YouTube video player';
+        iframe.frameBorder = '0';
+        iframe.allow =
+          'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        iframe.allowFullscreen = true;
+
+        facade.parentElement.appendChild(iframe);
+        facade.remove();
+
+        iframe.addEventListener('load', () => {
+          const afterClick = performance.now();
+          const clickLoadTime = afterClick - beforeClick;
+
+          const entries = performance.getEntriesByType('resource');
+          const youtubeResources = entries.filter(
+            (entry) =>
+              entry.name.includes('youtube.com') &&
+              entry.startTime > beforeClick
+          );
+
+          let clickLoadSize = 0;
+          youtubeResources.forEach((resource) => {
+            clickLoadSize += resource.transferSize;
+          });
+
+          console.log('=== 클릭 후 추가 로드 측정 ===');
+          console.log(`로드 시간: ${clickLoadTime.toFixed(2)} ms`);
+          console.log(
+            `추가 전송 크기: ${(clickLoadSize / 1024).toFixed(2)} KB`
+          );
+          console.log(
+            `총 전송 크기: ${((initialLoadSize + clickLoadSize) / 1024).toFixed(2)} KB`
+          );
+        });
+      });
+    </script>
+  </body>
+</html>

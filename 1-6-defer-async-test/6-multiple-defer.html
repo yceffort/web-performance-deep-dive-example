@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>6. 여러 개의 defer 스크립트 - 순서 보장</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      h1 {
+        color: #48bb78;
+      }
+      pre {
+        background: #1a202c;
+        color: #f7fafc;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      .highlight {
+        background: #f0fff4;
+        border-left: 4px solid #48bb78;
+        padding: 15px;
+        margin: 15px 0;
+      }
+      code {
+        background: #edf2f7;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Courier New', monospace;
+      }
+      .order {
+        font-size: 20px;
+        font-weight: bold;
+        color: #48bb78;
+      }
+      #status {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2d3748;
+      }
+      .time-info {
+        background: #edf2f7;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 5px 0;
+      }
+    </style>
+
+    <script>
+      console.log('⏰ [inline] <head> 시작 -', new Date().toISOString())
+    </script>
+
+    <!-- ✅ 여러 defer 스크립트 - HTML 순서대로 실행 -->
+    <script defer src="./scripts/jquery-sim.js"></script>
+    <!-- 500ms 다운로드 -->
+    <script defer src="./scripts/plugin-sim.js"></script>
+    <!-- 200ms 다운로드 (먼저 완료) -->
+    <script defer src="./scripts/app-sim.js"></script>
+    <!-- 300ms 다운로드 -->
+
+    <script>
+      console.log('⏰ [inline] <head> 끝 -', new Date().toISOString())
+
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎉 [DOMContentLoaded] 발생 -', new Date().toISOString())
+        console.log('🎉 [DOMContentLoaded] 모든 defer 스크립트 실행 완료 후 발생')
+      })
+    </script>
+  </head>
+  <body>
+    <script>
+      console.log('⏰ [inline] <body> 시작 -', new Date().toISOString())
+    </script>
+
+    <div class="card">
+      <h1>✅ 시나리오 6: 여러 개의 defer 스크립트</h1>
+      <p>여러 defer 스크립트는 병렬로 다운로드되지만, HTML 순서대로 실행됩니다.</p>
+      <p class="order">⭐ 핵심: 다운로드 순서 ≠ 실행 순서</p>
+    </div>
+
+    <div class="card">
+      <h2>📋 선언된 스크립트 순서</h2>
+      <ol>
+        <li>
+          <code>&lt;script defer src="jquery-sim.js"&gt;</code> - 다운로드 500ms (가장
+          느림)
+        </li>
+        <li>
+          <code>&lt;script defer src="plugin-sim.js"&gt;</code> - 다운로드 200ms
+          (가장 빠름)
+        </li>
+        <li>
+          <code>&lt;script defer src="app-sim.js"&gt;</code> - 다운로드 300ms
+        </li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>📊 예상 동작</h2>
+      <div class="highlight">
+        <strong>다운로드 (병렬):</strong>
+        <ul>
+          <li>plugin-sim.js 완료 (200ms) ← 가장 먼저 완료</li>
+          <li>app-sim.js 완료 (300ms)</li>
+          <li>jquery-sim.js 완료 (500ms) ← 가장 나중에 완료</li>
+        </ul>
+        <strong>실행 (순차, HTML 순서대로):</strong>
+        <ol>
+          <li>jquery-sim.js 실행 (500ms 대기 후) ← 1번으로 실행</li>
+          <li>plugin-sim.js 실행 (jQuery 의존) ← 2번으로 실행</li>
+          <li>app-sim.js 실행 (Plugin 의존) ← 3번으로 실행</li>
+        </ol>
+        <p style="margin-top: 10px; font-weight: bold;">
+          ⭐ 가장 느린 스크립트(jquery-sim.js) 다운로드가 완료될 때까지 모두 대기
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔍 Performance 탭에서 확인할 사항</h2>
+      <ol>
+        <li>Network 탭에서 3개 스크립트가 병렬로 다운로드되는 것 확인</li>
+        <li>plugin-sim.js가 먼저 완료되지만 실행은 대기</li>
+        <li>jquery-sim.js 다운로드 완료 후에야 실행 시작</li>
+        <li>Main 트랙에서 세 스크립트가 순차적으로 실행되는 것 확인:</li>
+      </ol>
+      <pre>
+Main Thread (HTML 파싱 완료 후):
+├─ Evaluate Script - jquery-sim.js   (500ms)
+├─ Evaluate Script - plugin-sim.js   (200ms)
+├─ Evaluate Script - app-sim.js      (300ms)
+└─ DOMContentLoaded (총 1000ms 실행 시간)
+      </pre>
+    </div>
+
+    <div class="card">
+      <h2>📝 콘솔 출력 순서</h2>
+      <p>콘솔에서 다음 순서로 로그가 출력됩니다:</p>
+      <ol>
+        <li><code>⏰ [inline] &lt;head&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;head&gt; 끝</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 시작</code></li>
+        <li><code>⏰ [inline] &lt;body&gt; 끝</code></li>
+        <li>
+          <code>📚 [1. jquery-sim.js] 실행 시작</code> ⭐ (HTML 파싱 완료 후, 1번째)
+        </li>
+        <li><code>📚 [1. jquery-sim.js] 실행 완료 - ~500ms</code></li>
+        <li><code>🔌 [2. plugin-sim.js] 실행 시작</code> ⭐ (2번째)</li>
+        <li><code>🔌 [2. plugin-sim.js] 실행 완료 - ~200ms</code></li>
+        <li><code>🚀 [3. app-sim.js] 실행 시작</code> ⭐ (3번째)</li>
+        <li><code>🚀 [3. app-sim.js] 실행 완료 - ~300ms</code></li>
+        <li><code>🎉 [DOMContentLoaded] 발생</code> ⭐ (모든 실행 완료 후)</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🎯 핵심 포인트</h2>
+      <ul>
+        <li>
+          <strong>다운로드는 병렬</strong>: 세 스크립트가 동시에 다운로드 시작
+        </li>
+        <li>
+          <strong>실행은 순차</strong>: HTML에 선언된 순서대로 실행 (jquery → plugin
+          → app)
+        </li>
+        <li>
+          <strong>가장 느린 스크립트를 대기</strong>: jquery-sim.js 다운로드가 끝날
+          때까지 모두 대기
+        </li>
+        <li>
+          <strong>의존성 안전</strong>: plugin은 jQuery에, app은 plugin에 의존하므로
+          순서 보장이 필수
+        </li>
+        <li>
+          <strong>DOMContentLoaded 지연</strong>: 모든 defer 스크립트 실행 완료 후
+          발생 (약 1초 지연)
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>⚠️ 만약 async를 사용했다면?</h2>
+      <pre style="background: #fff5f5; color: #c53030; border: 2px solid #fc8181;">
+❌ plugin-sim.js가 먼저 완료 (200ms)
+   → jQuery 없이 실행 시도
+   → ERROR: jQuery가 없습니다!
+   → 앱 크래시
+      </pre>
+      <p>
+        <strong>결론:</strong> 의존성이 있는 스크립트는 반드시 <code>defer</code>를
+        사용해야 합니다.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>✅ 실행 결과</h2>
+      <div id="status">대기 중...</div>
+      <div class="time-info" id="jquery-time">📚 jQuery: 대기 중...</div>
+      <div class="time-info" id="plugin-time">🔌 Plugin: 대기 중...</div>
+      <div class="time-info" id="app-time">🚀 App: 대기 중...</div>
+      <p style="color: #718096; font-size: 14px; margin-top: 10px;">
+        (스크립트 실행 중에는 아무것도 표시되지 않습니다. 모든 실행 완료 후 위
+        정보가 업데이트됩니다.)
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>📊 다른 시나리오 비교</h2>
+      <ul>
+        <li>
+          <a href="./2-defer-light.html">2-defer-light.html</a>: 단일 defer
+          스크립트 (가벼운)
+        </li>
+        <li>
+          <a href="./3-defer-heavy.html">3-defer-heavy.html</a>: 단일 defer
+          스크립트 (무거운)
+        </li>
+        <li><strong>현재 페이지</strong>: 여러 defer 스크립트 (의존성 있음)</li>
+      </ul>
+    </div>
+
+    <script>
+      console.log('⏰ [inline] <body> 끝 -', new Date().toISOString())
+    </script>
+  </body>
+</html>

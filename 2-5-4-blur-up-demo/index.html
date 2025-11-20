@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blur-up 이미지 로딩 데모</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Blur-up 이미지 로딩 데모</h1>
+      <p class="description">
+        크롬 개발자 도구 (F12) → Network 탭 → Throttling을 "Slow 4G"로
+        설정하면 효과를 더 잘 볼 수 있습니다.
+      </p>
+
+      <!-- 단계별 비교 -->
+      <section>
+        <h2>단계별 비교 (스크린샷용)</h2>
+        <div class="stage-grid">
+          <!-- 1단계: 흐릿한 프리뷰만 -->
+          <div class="stage-item">
+            <h3>1단계: 흐릿한 프리뷰</h3>
+            <div class="image-wrapper">
+              <img
+                class="blur-preview"
+                src="placeholder-small.jpg"
+                alt="흐릿한 프리뷰"
+              />
+            </div>
+            <p class="stage-desc">
+              1KB 정도의 작은 이미지를 blur(10px) 필터로 표시
+            </p>
+          </div>
+
+          <!-- 2단계: 전환 중 -->
+          <div class="stage-item">
+            <h3>2단계: 로딩 중 (전환 50%)</h3>
+            <div class="image-wrapper">
+              <img
+                class="blur-preview"
+                src="placeholder-small.jpg"
+                alt="흐릿한 프리뷰"
+              />
+              <img
+                class="full-image transitioning"
+                src="demo-image.jpg"
+                alt="원본 이미지"
+              />
+            </div>
+            <p class="stage-desc">고해상도 이미지가 페이드 인 중</p>
+          </div>
+
+          <!-- 3단계: 완전히 로드됨 -->
+          <div class="stage-item">
+            <h3>3단계: 로드 완료</h3>
+            <div class="image-wrapper">
+              <img
+                class="full-image loaded"
+                src="demo-image.jpg"
+                alt="원본 이미지"
+              />
+            </div>
+            <p class="stage-desc">선명한 이미지 표시, 프리뷰는 숨김</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 실제 동작 데모 -->
+      <section>
+        <h2>실제 동작 데모</h2>
+        <p class="demo-instruction">
+          아래 버튼을 클릭하면 실제 Blur-up 효과를 확인할 수 있습니다.
+          <br />
+          Network throttling을 "Slow 4G"로 설정하면 효과가 더 명확합니다.
+        </p>
+
+        <div class="demo-controls">
+          <button id="reload-btn" class="btn-primary">이미지 다시 로드</button>
+          <button id="clear-cache-btn" class="btn-secondary">
+            캐시 무시하고 새로고침
+          </button>
+        </div>
+
+        <div class="demo-container">
+          <div class="image-container" id="demo-image-container">
+            <!-- 흐릿한 프리뷰 (Base64로 인라인되어 즉시 로드) -->
+            <img
+              class="image-placeholder"
+              src="placeholder-small.jpg"
+              alt=""
+              aria-hidden="true"
+            />
+            <!-- 실제 고해상도 이미지 -->
+            <img
+              class="image-full"
+              id="demo-full-image"
+              data-src="demo-image.jpg"
+              alt="데모 이미지"
+            />
+          </div>
+
+          <div class="loading-info">
+            <p id="loading-status">이미지 로딩 대기 중...</p>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 코드 설명 -->
+      <section>
+        <h2>구현 방법</h2>
+        <details>
+          <summary>HTML 구조 보기</summary>
+          <pre><code>&lt;div class="image-container"&gt;
+  &lt;!-- 흐릿한 프리뷰 --&gt;
+  &lt;img class="image-placeholder"
+       src="placeholder-small.jpg"
+       alt="" aria-hidden="true" /&gt;
+
+  &lt;!-- 실제 이미지 --&gt;
+  &lt;img class="image-full"
+       src="demo-image.jpg"
+       alt="데모 이미지" /&gt;
+&lt;/div&gt;</code></pre>
+        </details>
+
+        <details>
+          <summary>CSS 스타일 보기</summary>
+          <pre><code>.image-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.image-placeholder {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(10px);
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+.image-full {
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease-in;
+  z-index: 2;
+}
+
+.image-full.loaded {
+  opacity: 1;
+}</code></pre>
+        </details>
+
+        <details>
+          <summary>JavaScript 코드 보기</summary>
+          <pre><code>const fullImage = document.querySelector('.image-full')
+
+fullImage.addEventListener('load', () => {
+  fullImage.classList.add('loaded')
+})
+
+// 이미 캐시된 경우
+if (fullImage.complete) {
+  fullImage.classList.add('loaded')
+}</code></pre>
+        </details>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

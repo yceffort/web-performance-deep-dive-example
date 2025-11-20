@@ -1,0 +1,12 @@
+{
+  "name": "quality-comparison",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "JPEG 품질별 파일 크기 비교 테스트",
+  "scripts": {
+    "test": "node test-quality.js"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

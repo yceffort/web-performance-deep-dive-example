@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chrome 리소스 우선순위 테스트</title>
+
+  <!-- 1. CSS: Highest 우선순위 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+  <!-- 2. preload as="style": Highest 우선순위 -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+
+  <!-- 3. preload as="script": High 우선순위 -->
+  <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js">
+
+  <!-- 4. preload as="font": High 우선순위 -->
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2">
+
+  <!-- 5. prefetch: Lowest 우선순위 -->
+  <link rel="prefetch" href="https://placehold.co/1000x1000/cccccc/ffffff?text=Prefetch+Image">
+
+  <!-- 6. 동기 자바스크립트 (head): High 우선순위 -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+
+  <!-- 7. modulepreload: High 우선순위 -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.esm-browser.js">
+
+  <style>
+    body {
+      padding: 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .section {
+      margin: 40px 0;
+      padding: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+    .priority-label {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .highest { background: #e74c3c; color: white; }
+    .high { background: #e67e22; color: white; }
+    .medium { background: #f39c12; color: white; }
+    .low { background: #3498db; color: white; }
+    .lowest { background: #95a5a6; color: white; }
+    img {
+      display: block;
+      margin: 10px 0;
+      max-width: 100%;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chrome 리소스 우선순위 테스트</h1>
+  <p>Chrome DevTools의 Network 탭을 열어 각 리소스의 Priority 컬럼을 확인하세요.</p>
+
+  <div class="section">
+    <h2>1. CSS 파일 <span class="priority-label highest">Highest</span></h2>
+    <p>Bootstrap CSS가 Highest 우선순위로 로드됩니다.</p>
+  </div>
+
+  <div class="section">
+    <h2>2. preload 리소스 힌트</h2>
+    <ul>
+      <li>preload as="style" <span class="priority-label highest">Highest</span></li>
+      <li>preload as="script" <span class="priority-label high">High</span></li>
+      <li>preload as="font" <span class="priority-label high">High</span></li>
+      <li>modulepreload <span class="priority-label high">High</span></li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>3. prefetch 리소스 힌트 <span class="priority-label lowest">Lowest</span></h2>
+    <p>미래에 필요할 수 있는 리소스는 가장 낮은 우선순위로 로드됩니다.</p>
+  </div>
+
+  <div class="section">
+    <h2>4. 동기 자바스크립트 (head) <span class="priority-label high">High</span></h2>
+    <p>jQuery가 head에서 High 우선순위로 로드되었습니다.</p>
+  </div>
+
+  <div class="section">
+    <h2>5. 동기 자바스크립트 (body) <span class="priority-label medium">Medium</span></h2>
+    <!-- 이 스크립트는 body 중간에 있으므로 Medium 우선순위 -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+    <p>Axios가 body에서 Medium 우선순위로 로드됩니다.</p>
+  </div>
+
+  <div class="section">
+    <h2>6. async/defer 스크립트 <span class="priority-label low">Low</span></h2>
+    <!-- async 스크립트: Low 우선순위 -->
+    <script async src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <!-- defer 스크립트: Low 우선순위 -->
+    <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1.11.9/dayjs.min.js"></script>
+    <p>async와 defer 속성이 있는 스크립트는 Low 우선순위로 로드됩니다.</p>
+  </div>
+
+  <div class="section">
+    <h2>7. 뷰포트 내 이미지 <span class="priority-label low">Low</span></h2>
+    <!-- 일반 이미지: Low 우선순위 -->
+    <img src="https://placehold.co/800x400/3498db/ffffff?text=Viewport+Image+1"
+         alt="뷰포트 내 이미지 1" width="800" height="400">
+    <img src="https://placehold.co/800x400/2ecc71/ffffff?text=Viewport+Image+2"
+         alt="뷰포트 내 이미지 2" width="800" height="400">
+  </div>
+
+  <div class="section">
+    <h2>8. fetchpriority="high"로 우선순위 상승 <span class="priority-label high">High</span></h2>
+    <!-- fetchpriority="high": 우선순위가 Low에서 High로 상승 -->
+    <img src="https://placehold.co/800x400/e74c3c/ffffff?text=High+Priority+Image"
+         alt="고우선순위 이미지"
+         fetchpriority="high"
+         width="800" height="400">
+    <p>fetchpriority="high" 속성으로 이미지 우선순위가 상승했습니다.</p>
+  </div>
+
+  <div class="section">
+    <h2>9. loading="lazy" 이미지 <span class="priority-label lowest">Lowest</span></h2>
+    <!-- 뷰포트 아래에 있고 loading="lazy": Lowest 우선순위 -->
+    <div style="height: 1000px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+      <p style="font-size: 24px; color: #95a5a6;">↓ 스크롤하여 지연 로딩 이미지 확인 ↓</p>
+    </div>
+    <img src="https://placehold.co/800x400/95a5a6/ffffff?text=Lazy+Image+1"
+         alt="지연 로딩 이미지 1"
+         loading="lazy"
+         width="800" height="400">
+    <img src="https://placehold.co/800x400/34495e/ffffff?text=Lazy+Image+2"
+         alt="지연 로딩 이미지 2"
+         loading="lazy"
+         width="800" height="400">
+    <p>loading="lazy" 속성으로 스크롤 전까지 로딩이 지연됩니다.</p>
+  </div>
+
+  <div class="section">
+    <h2>10. fetchpriority="low"로 우선순위 하락 <span class="priority-label lowest">Lowest</span></h2>
+    <!-- fetchpriority="low" 스크립트: 우선순위 하락 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.js" fetchpriority="low"></script>
+    <p>fetchpriority="low" 속성으로 스크립트 우선순위가 하락했습니다.</p>
+  </div>
+
+  <!-- 추가 body 끝 동기 스크립트: Low 우선순위 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <div style="margin-top: 40px; padding: 20px; background: #ecf0f1; border-radius: 8px;">
+    <h3>테스트 방법</h3>
+    <ol>
+      <li>Chrome DevTools를 엽니다 (F12 또는 Cmd+Option+I)</li>
+      <li>Network 탭으로 이동합니다</li>
+      <li>페이지를 새로고침합니다 (Cmd+R 또는 Ctrl+R)</li>
+      <li>Priority 컬럼을 확인합니다 (보이지 않으면 컬럼 헤더를 우클릭하여 활성화)</li>
+      <li>각 리소스의 우선순위가 위 설명과 일치하는지 확인합니다</li>
+    </ol>
+    <p><strong>참고:</strong> 캐시의 영향을 받지 않으려면 "Disable cache" 옵션을 체크하세요.</p>
+  </div>
+
+  <script>
+    // 페이지 로드 완료 확인
+    window.addEventListener('load', () => {
+      console.log('✅ 모든 리소스 로드 완료');
+      console.log('Chrome DevTools Network 탭에서 Priority 컬럼을 확인하세요.');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Partytown 적용 후 - Web Worker Google Analytics</title>
+
+    <!-- Partytown 설정 -->
+    <script>
+      partytown = {
+        debug: true, // 개발 환경에서 디버그 활성화
+        forward: ['dataLayer.push', 'gtag'],
+        lib: '/~partytown/',
+      }
+    </script>
+
+    <!-- Partytown 스니펫 -->
+    <script>
+      /* Partytown 3.0 inline snippet */
+      !(function (w, p, f, c) {
+        c = w[p] = Object.assign(
+          w[p] || {},
+          {
+            lib: '/~partytown/',
+            debug: false,
+          },
+          c
+        )
+        ;(s = f.createElement('script')),
+          (s.async = !0),
+          (s.src = c.lib + 'partytown.js'),
+          (h = f.querySelector('head')),
+          h.appendChild(s)
+      })(window, 'partytown', document)
+    </script>
+
+    <!-- Google Analytics (Partytown으로 실행) -->
+    <script type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script type="text/partytown">
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', 'G-XXXXXXXXXX')
+    </script>
+
+    <!-- 무거운 서드파티 스크립트 (Web Worker에서 실행) -->
+    <script type="text/partytown" src="/heavy-third-party.js"></script>
+
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .status {
+        background: #f0f0f0;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+      .success {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      button {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #218838;
+      }
+      code {
+        background: #f5f5f5;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🟢 Partytown 적용 후</h1>
+
+    <div class="success">
+      <strong>✅ 성공:</strong> 이 페이지는 Google Analytics 스크립트가 Web Worker에서 실행됩니다. 메인
+      스레드는 차단되지 않습니다!
+    </div>
+
+    <div class="status">
+      <h2>현재 상태</h2>
+      <p>✅ Google Analytics: Partytown (Web Worker)</p>
+      <p>📊 크롬 개발자 도구 > Performance 탭에서 확인:</p>
+      <ul>
+        <li>Main 트랙이 깨끗함 (gtag.js가 없음)</li>
+        <li>Worker 트랙에서 <code>gtag.js</code> 실행 확인</li>
+        <li>Total Blocking Time (TBT) 감소 확인</li>
+      </ul>
+    </div>
+
+    <h2>테스트 방법</h2>
+    <ol>
+      <li>크롬 개발자 도구를 엽니다 (F12)</li>
+      <li>Console 탭에서 Partytown 로그 확인</li>
+      <li>Performance 탭으로 이동</li>
+      <li>녹화 버튼을 누르고 페이지를 새로고침 (Ctrl+R)</li>
+      <li>Main 트랙이 깨끗한지 확인</li>
+      <li>Worker 트랙에서 <code>gtag.js</code> 확인</li>
+      <li>Lighthouse를 실행하여 Performance 점수 비교</li>
+    </ol>
+
+    <button onclick="sendEvent()">이벤트 전송 테스트</button>
+
+    <h2>비교하기</h2>
+    <p><a href="index-before.html">← Partytown 적용 전 페이지로 돌아가기</a></p>
+
+    <h2>Partytown 디버그 정보</h2>
+    <div id="debug" style="background: #f5f5f5; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px"></div>
+
+    <script>
+      function sendEvent() {
+        if (typeof gtag === 'function') {
+          gtag('event', 'button_click', {
+            event_category: 'engagement',
+            event_label: 'test_button_partytown',
+          })
+          alert('이벤트가 전송되었습니다! (Partytown Worker에서 실행)')
+        } else {
+          alert('Google Analytics가 아직 로드되지 않았습니다.')
+        }
+      }
+
+      // 페이지 로드 시간 측정
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const perfData = performance.getEntriesByType('navigation')[0]
+          console.log('🟢 Partytown 적용 후:')
+          console.log('  - DOM Content Loaded:', perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart, 'ms')
+          console.log('  - Load Complete:', perfData.loadEventEnd - perfData.loadEventStart, 'ms')
+
+          // Partytown 정보 표시
+          const debugDiv = document.getElementById('debug')
+          debugDiv.innerHTML = `
+            <strong>Partytown 설정:</strong><br>
+            - Debug: ${partytown.debug}<br>
+            - Forward: ${partytown.forward.join(', ')}<br>
+            - Lib Path: ${partytown.lib}<br>
+            <br>
+            <strong>성능 지표:</strong><br>
+            - DOM Content Loaded: ${(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart).toFixed(2)} ms<br>
+            - Load Complete: ${(perfData.loadEventEnd - perfData.loadEventStart).toFixed(2)} ms
+          `
+        }, 0)
+      })
+
+      // Partytown 메시지 리스닝
+      window.addEventListener('partytown-message', (event) => {
+        console.log('[Partytown Message]', event.detail)
+      })
+    </script>
+  </body>
+</html>

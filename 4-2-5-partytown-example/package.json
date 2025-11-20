@@ -1,0 +1,16 @@
+{
+  "name": "partytown-example",
+  "version": "1.0.0",
+  "description": "Partytown 적용 전후 비교 예제",
+  "scripts": {
+    "copy:partytown": "mkdir -p public/~partytown && cp -r node_modules/@builder.io/partytown/lib/* public/~partytown/",
+    "serve": "npm run copy:partytown && http-server public -p 8080 -o",
+    "start": "npm run serve"
+  },
+  "dependencies": {
+    "@builder.io/partytown": "^0.10.2"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

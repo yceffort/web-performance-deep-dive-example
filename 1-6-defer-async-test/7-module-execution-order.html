@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>모듈 스크립트 실행 순서 테스트</title>
+    <style>
+      body {
+        font-family: 'Courier New', monospace;
+        max-width: 1000px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #1e1e1e;
+        color: #d4d4d4;
+      }
+      h1 {
+        color: #4ec9b0;
+        border-bottom: 2px solid #4ec9b0;
+        padding-bottom: 10px;
+      }
+      .log-container {
+        background: #252526;
+        border: 1px solid #3e3e42;
+        border-radius: 5px;
+        padding: 20px;
+        margin: 20px 0;
+        min-height: 300px;
+      }
+      .log-entry {
+        padding: 8px 12px;
+        margin: 5px 0;
+        border-left: 3px solid;
+        background: rgba(255, 255, 255, 0.05);
+        font-size: 14px;
+      }
+      .log-1 {
+        border-left-color: #ce9178;
+      }
+      .log-2 {
+        border-left-color: #dcdcaa;
+      }
+      .log-3 {
+        border-left-color: #4ec9b0;
+      }
+      .log-4 {
+        border-left-color: #569cd6;
+      }
+      .timestamp {
+        color: #858585;
+        font-size: 12px;
+        margin-right: 10px;
+      }
+      .description {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(78, 201, 176, 0.1);
+        border-left: 3px solid #4ec9b0;
+        border-radius: 3px;
+      }
+      .code-block {
+        background: #1e1e1e;
+        border: 1px solid #3e3e42;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 3px;
+        overflow-x: auto;
+      }
+      .highlight {
+        color: #4ec9b0;
+        font-weight: bold;
+      }
+    </style>
+    <script>
+      // 로그 기록을 위한 유틸리티
+      const startTime = performance.now()
+      window.executionLogs = []
+
+      function addLog(step, message, type) {
+        const timestamp = (performance.now() - startTime).toFixed(2)
+        const log = { step, message, type, timestamp }
+        window.executionLogs.push(log)
+        console.log(`[${timestamp}ms] ${step}. ${message}`)
+      }
+
+      function displayLogs() {
+        const container = document.getElementById('log-output')
+        if (!container) return
+
+        container.innerHTML = window.executionLogs
+          .map(
+            (log) => `
+          <div class="log-entry log-${log.step}">
+            <span class="timestamp">${log.timestamp}ms</span>
+            <span class="highlight">${log.step}.</span> ${log.message}
+          </div>
+        `
+          )
+          .join('')
+      }
+
+      // 1. Inline script (즉시 실행)
+      addLog(1, 'Inline script 실행 - 즉시 실행됨', 'inline')
+    </script>
+
+    <script src="scripts/module-test-regular.js"></script>
+    <!-- 2. Regular script - 즉시 실행 (파싱 블로킹) -->
+
+    <script type="module" src="scripts/module-test-module.js"></script>
+    <!-- 다운로드 시작, 파싱 계속, 파싱 완료 후 실행 -->
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        addLog(
+          4,
+          'DOMContentLoaded 이벤트 발생 - 모든 defer/module 스크립트 실행 완료 후',
+          'event'
+        )
+        // DOM이 준비되면 로그 표시
+        displayLogs()
+      })
+    </script>
+  </head>
+  <body>
+    <h1>🔍 모듈 스크립트 실행 순서 테스트</h1>
+
+    <div class="description">
+      <strong>테스트 목적:</strong> 일반 스크립트와 모듈 스크립트(<code
+        >type="module"</code
+      >)의 실행 순서를 확인합니다.
+      <br /><br />
+      <strong>예상 순서:</strong>
+      <ol>
+        <li>
+          Inline script (즉시 실행) - <code>&lt;script&gt;</code> 태그 내부 코드
+        </li>
+        <li>
+          Regular script (파싱 블로킹) - <code>&lt;script src=""&gt;</code> 다운로드
+          + 실행
+        </li>
+        <li>
+          Module script (파싱 완료 후) - <code
+            >&lt;script type="module"&gt;</code
+          >
+          HTML 파싱 완료 후 실행
+        </li>
+        <li>
+          DOMContentLoaded 이벤트 - 모든 defer/module 스크립트 실행 완료 후 발생
+        </li>
+      </ol>
+    </div>
+
+    <h2>📊 실행 로그</h2>
+    <div class="log-container">
+      <div id="log-output">
+        <p style="color: #858585">로그 로딩 중...</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <strong>HTML 구조:</strong>
+      <pre style="margin: 10px 0; color: #d4d4d4;">
+&lt;head&gt;
+  &lt;script&gt;
+    // 1. Inline script - 즉시 실행
+  &lt;/script&gt;
+
+  &lt;script src="/regular.js"&gt;&lt;/script&gt;
+  &lt;!-- 2. Regular script - 다운로드 + 실행 (파싱 블로킹) --&gt;
+
+  &lt;script type="module" src="/module.js"&gt;&lt;/script&gt;
+  &lt;!-- 다운로드 시작, 파싱 계속 --&gt;
+
+  &lt;script&gt;
+    document.addEventListener('DOMContentLoaded', () =&gt; {
+      // 4. DOMContentLoaded
+    })
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Content&lt;/h1&gt;
+  &lt;!-- 3. Module script - 파싱 완료 후 실행 --&gt;
+&lt;/body&gt;</pre
+      >
+    </div>
+
+    <div class="description">
+      <strong>핵심 포인트:</strong>
+      <ul>
+        <li>
+          모듈 스크립트는 <span class="highlight">기본적으로 defer처럼 동작</span>
+        </li>
+        <li>HTML 파싱을 블로킹하지 않음</li>
+        <li>파싱 완료 후 실행되므로 DOM이 준비된 상태</li>
+        <li>DOMContentLoaded 이벤트 전에 실행됨</li>
+      </ul>
+    </div>
+
+    <p style="color: #858585; margin-top: 40px; text-align: center">
+      크롬 개발자 도구 Console 탭을 열면 더 자세한 로그를 볼 수 있습니다.
+    </p>
+  </body>
+</html>

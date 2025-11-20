@@ -1,0 +1,120 @@
+{
+  "common": {
+    "appName": "다국어 번들 분석 예제",
+    "welcome": "환영합니다",
+    "hello": "안녕하세요",
+    "goodbye": "안녕히 가세요",
+    "yes": "예",
+    "no": "아니오",
+    "ok": "확인",
+    "cancel": "취소",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "편집",
+    "close": "닫기",
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다",
+    "success": "성공했습니다"
+  },
+  "navigation": {
+    "home": "홈",
+    "about": "소개",
+    "contact": "연락처",
+    "services": "서비스",
+    "products": "제품",
+    "pricing": "가격",
+    "blog": "블로그",
+    "faq": "자주 묻는 질문",
+    "privacy": "개인정보 처리방침",
+    "terms": "이용약관"
+  },
+  "home": {
+    "title": "다국어 번들 최적화",
+    "subtitle": "사용자별로 필요한 언어 파일만 로드합니다",
+    "description": "이 예제는 Next.js에서 동적 import를 사용하여 언어 파일을 분리하고, 번들 분석기로 확인하는 방법을 보여줍니다.",
+    "features": {
+      "title": "주요 기능",
+      "dynamicImport": "동적 import로 언어 파일 분리",
+      "bundleAnalysis": "@next/bundle-analyzer로 번들 구조 확인",
+      "codesplitting": "언어별 청크 분리로 초기 로딩 최적화",
+      "lazy": "필요한 언어만 로드하여 대역폭 절약"
+    },
+    "howToUse": {
+      "title": "사용 방법",
+      "step1": "1. npm install로 패키지 설치",
+      "step2": "2. npm run analyze로 번들 분석 실행",
+      "step3": "3. 브라우저에서 .next/analyze/client.html 확인",
+      "step4": "4. 트리맵에서 ko.json, en.json, ja.json 분리 확인"
+    }
+  },
+  "about": {
+    "title": "소개",
+    "content": "이 프로젝트는 웹 성능 최적화를 위한 다국어 번들 분리 예제입니다. 사용자의 언어 설정에 따라 필요한 언어 파일만 로드하여 초기 번들 크기를 줄입니다."
+  },
+  "form": {
+    "name": "이름",
+    "email": "이메일",
+    "phone": "전화번호",
+    "message": "메시지",
+    "submit": "제출",
+    "reset": "초기화",
+    "required": "필수 항목입니다",
+    "invalidEmail": "올바른 이메일 주소를 입력하세요",
+    "invalidPhone": "올바른 전화번호를 입력하세요",
+    "tooShort": "너무 짧습니다",
+    "tooLong": "너무 깁니다"
+  },
+  "product": {
+    "name": "제품명",
+    "price": "가격",
+    "description": "설명",
+    "category": "카테고리",
+    "stock": "재고",
+    "addToCart": "장바구니에 추가",
+    "buyNow": "바로 구매",
+    "outOfStock": "품절",
+    "inStock": "재고 있음",
+    "reviews": "리뷰",
+    "rating": "평점"
+  },
+  "cart": {
+    "title": "장바구니",
+    "empty": "장바구니가 비어있습니다",
+    "total": "합계",
+    "subtotal": "소계",
+    "tax": "세금",
+    "shipping": "배송비",
+    "checkout": "결제하기",
+    "continueShopping": "계속 쇼핑하기",
+    "removeItem": "항목 제거",
+    "updateQuantity": "수량 변경"
+  },
+  "user": {
+    "login": "로그인",
+    "logout": "로그아웃",
+    "register": "회원가입",
+    "profile": "프로필",
+    "settings": "설정",
+    "account": "계정",
+    "password": "비밀번호",
+    "changePassword": "비밀번호 변경",
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "rememberMe": "로그인 상태 유지"
+  },
+  "notification": {
+    "newMessage": "새 메시지가 도착했습니다",
+    "orderConfirmed": "주문이 확인되었습니다",
+    "shipmentSent": "배송이 시작되었습니다",
+    "deliveryCompleted": "배송이 완료되었습니다",
+    "paymentReceived": "결제가 완료되었습니다",
+    "accountUpdated": "계정 정보가 업데이트되었습니다"
+  },
+  "error": {
+    "404": "페이지를 찾을 수 없습니다",
+    "500": "서버 오류가 발생했습니다",
+    "network": "네트워크 연결을 확인하세요",
+    "timeout": "요청 시간이 초과되었습니다",
+    "unauthorized": "권한이 없습니다",
+    "forbidden": "접근이 거부되었습니다"
+  }
+}

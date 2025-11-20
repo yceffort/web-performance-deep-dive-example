@@ -1,0 +1,12 @@
+{
+  "name": "blur-up-demo",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Blur-up 이미지 로딩 효과 데모",
+  "scripts": {
+    "generate": "node generate-placeholder.js"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

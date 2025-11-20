@@ -1,0 +1,47 @@
+---
+import Header from '../components/Header.astro'
+import CommentForm from '../components/CommentForm.tsx'
+---
+
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro Islands 예제</title>
+  </head>
+  <body>
+    <!-- 정적 컴포넌트: JS 없음 -->
+    <Header />
+
+    <main style="max-width: 800px; margin: 0 auto; padding: 0 1rem;">
+      <article>
+        <h1>블로그 글 제목</h1>
+        <p>
+          이 페이지는 Astro Islands 아키텍처를 시연합니다.
+          Header와 본문은 정적 HTML만 생성되며, 클라이언트 자바스크립트가 없습니다.
+        </p>
+        <p>
+          CommentForm만 React 컴포넌트로 하이드레이션됩니다.
+          개발자 도구의 Network 탭에서 확인해보세요.
+        </p>
+      </article>
+
+      <!-- 인터랙티브 아일랜드: JS 포함 -->
+      <CommentForm client:load />
+    </main>
+  </body>
+</html>
+
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  article {
+    margin-bottom: 2rem;
+  }
+  h1 {
+    color: #333;
+  }
+</style>

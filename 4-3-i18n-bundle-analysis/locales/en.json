@@ -1,0 +1,120 @@
+{
+  "common": {
+    "appName": "i18n Bundle Analysis Example",
+    "welcome": "Welcome",
+    "hello": "Hello",
+    "goodbye": "Goodbye",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success"
+  },
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "services": "Services",
+    "products": "Products",
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "faq": "FAQ",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "home": {
+    "title": "i18n Bundle Optimization",
+    "subtitle": "Load only the language files needed per user",
+    "description": "This example demonstrates how to split language files using dynamic imports in Next.js and verify them with bundle analyzer.",
+    "features": {
+      "title": "Key Features",
+      "dynamicImport": "Split language files with dynamic imports",
+      "bundleAnalysis": "Verify bundle structure with @next/bundle-analyzer",
+      "codesplitting": "Optimize initial loading with per-language chunk splitting",
+      "lazy": "Save bandwidth by loading only needed languages"
+    },
+    "howToUse": {
+      "title": "How to Use",
+      "step1": "1. Install packages with npm install",
+      "step2": "2. Run bundle analysis with npm run analyze",
+      "step3": "3. Check .next/analyze/client.html in browser",
+      "step4": "4. Verify ko.json, en.json, ja.json separation in treemap"
+    }
+  },
+  "about": {
+    "title": "About",
+    "content": "This project is an example of multilingual bundle splitting for web performance optimization. It reduces initial bundle size by loading only the language files needed based on user's language settings."
+  },
+  "form": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "message": "Message",
+    "submit": "Submit",
+    "reset": "Reset",
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "invalidPhone": "Please enter a valid phone number",
+    "tooShort": "Too short",
+    "tooLong": "Too long"
+  },
+  "product": {
+    "name": "Product Name",
+    "price": "Price",
+    "description": "Description",
+    "category": "Category",
+    "stock": "Stock",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock",
+    "reviews": "Reviews",
+    "rating": "Rating"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "shipping": "Shipping",
+    "checkout": "Checkout",
+    "continueShopping": "Continue Shopping",
+    "removeItem": "Remove Item",
+    "updateQuantity": "Update Quantity"
+  },
+  "user": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "profile": "Profile",
+    "settings": "Settings",
+    "account": "Account",
+    "password": "Password",
+    "changePassword": "Change Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me"
+  },
+  "notification": {
+    "newMessage": "You have a new message",
+    "orderConfirmed": "Your order has been confirmed",
+    "shipmentSent": "Your shipment has been sent",
+    "deliveryCompleted": "Delivery completed",
+    "paymentReceived": "Payment received",
+    "accountUpdated": "Account information updated"
+  },
+  "error": {
+    "404": "Page not found",
+    "500": "Internal server error",
+    "network": "Please check your network connection",
+    "timeout": "Request timeout",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access forbidden"
+  }
+}

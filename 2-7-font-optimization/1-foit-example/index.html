@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FOIT (Flash of Invisible Text) 예제</title>
+    <style>
+      /* font-display를 설정하지 않으면 브라우저 기본 동작 (block과 유사) */
+      @font-face {
+        font-family: 'CustomFont';
+        src: url('/fonts/slow-font.woff2') format('woff2');
+        /* font-display 속성 없음 - FOIT 발생 */
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'CustomFont', Arial, sans-serif;
+        font-size: 20px;
+        padding: 40px;
+        line-height: 1.6;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .info-box {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+      }
+
+      .info-box h2 {
+        margin-bottom: 10px;
+        color: #856404;
+      }
+
+      .info-box p {
+        color: #856404;
+        margin-bottom: 10px;
+      }
+
+      .content {
+        background: white;
+        padding: 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #2c3e50;
+      }
+
+      .description {
+        background: #e8f4f8;
+        padding: 15px;
+        margin: 20px 0;
+        border-left: 4px solid #3498db;
+      }
+
+      .status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #fff;
+        padding: 15px 20px;
+        border: 2px solid #333;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        min-width: 250px;
+      }
+
+      .status h3 {
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+
+      .status .metric {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+        font-size: 14px;
+      }
+
+      .status .metric strong {
+        color: #e74c3c;
+      }
+
+      .timeline {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .timeline-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .timeline-item:last-child {
+        border-bottom: none;
+      }
+
+      .timeline-item .time {
+        font-weight: bold;
+        color: #3498db;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="info-box">
+      <h2>⚠️ FOIT (Flash of Invisible Text) 현상</h2>
+      <p>
+        <strong>이 페이지는 font-display 속성을 설정하지 않았습니다.</strong>
+      </p>
+      <p>
+        폰트가 로드되는 동안 (약 3-4초) 아래 텍스트가 보이지 않는 것을
+        확인하세요.
+      </p>
+      <p>
+        Chrome/Firefox: 최대 3초 대기 후 폴백 폰트 표시 | Safari: 폰트 로드될
+        때까지 무한 대기
+      </p>
+    </div>
+
+    <div class="status" id="status">
+      <h3>📊 폰트 로딩 상태</h3>
+      <div class="metric">
+        <span>상태:</span>
+        <strong id="font-status">로딩 중...</strong>
+      </div>
+      <div class="metric">
+        <span>경과 시간:</span>
+        <strong id="elapsed-time">0ms</strong>
+      </div>
+      <div class="metric">
+        <span>FCP:</span>
+        <strong id="fcp-time">-</strong>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1>이 제목은 폰트가 로드될 때까지 보이지 않습니다</h1>
+
+      <div class="description">
+        <p>
+          <strong>FOIT란?</strong> Flash of Invisible Text의 약자로, 웹 폰트가
+          로드되는 동안 텍스트를 완전히 숨기는 현상입니다.
+        </p>
+      </div>
+
+      <p>
+        Chrome과 Firefox는 폰트 다운로드가 시작되면 최대 3초 동안 텍스트를
+        숨깁니다. 3초 안에 폰트가 도착하지 않으면 폴백 폰트(Arial)로 텍스트를
+        표시하고, 폰트가 나중에 도착하면 웹 폰트로 교체합니다.
+      </p>
+
+      <p>
+        Safari는 더 심각합니다. Timeout이 아예 없어서 폰트가 도착할 때까지 무한정
+        기다립니다. 네트워크가 느리거나 CDN이 응답하지 않으면 사용자는 빈 화면만
+        보게 됩니다.
+      </p>
+
+      <h2>성능 영향</h2>
+
+      <p>
+        FOIT는 FCP (First Contentful Paint)와 LCP (Largest Contentful Paint)를
+        직접적으로 지연시킵니다. 텍스트가 페이지의 주요 콘텐츠라면, 텍스트가
+        보이지 않는 동안 FCP가 발생하지 않습니다.
+      </p>
+
+      <div class="timeline" id="timeline">
+        <h3>📝 타임라인</h3>
+        <div id="timeline-events"></div>
+      </div>
+    </div>
+
+    <script>
+      const startTime = performance.now()
+      const timelineEvents = []
+
+      function addTimelineEvent(message) {
+        const elapsed = Math.round(performance.now() - startTime)
+        timelineEvents.push({ time: elapsed, message })
+        updateTimeline()
+      }
+
+      function updateTimeline() {
+        const container = document.getElementById('timeline-events')
+        container.innerHTML = timelineEvents
+          .map(
+            (event) =>
+              `<div class="timeline-item">
+                <span class="time">${event.time}ms:</span> ${event.message}
+              </div>`,
+          )
+          .join('')
+      }
+
+      function updateElapsedTime() {
+        const elapsed = Math.round(performance.now() - startTime)
+        document.getElementById('elapsed-time').textContent = `${elapsed}ms`
+      }
+
+      addTimelineEvent('페이지 로드 시작')
+      setInterval(updateElapsedTime, 100)
+
+      // FCP 측정
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.name === 'first-contentful-paint') {
+            const fcpTime = Math.round(entry.startTime)
+            document.getElementById('fcp-time').textContent = `${fcpTime}ms`
+            addTimelineEvent(`FCP 발생: ${fcpTime}ms`)
+          }
+        }
+      })
+      observer.observe({ type: 'paint', buffered: true })
+
+      // 폰트 로딩 상태 확인
+      const fontCheckStart = performance.now()
+
+      function checkFontLoaded() {
+        const elapsed = Math.round(performance.now() - fontCheckStart)
+
+        if (document.fonts.check('20px CustomFont')) {
+          document.getElementById('font-status').textContent = '로드 완료'
+          document.getElementById('font-status').style.color = '#27ae60'
+          addTimelineEvent(`폰트 로드 완료: ${elapsed}ms`)
+          return true
+        }
+
+        if (elapsed > 3000 && elapsed < 3100) {
+          addTimelineEvent(
+            '⚠️ 3초 초과: Chrome/Firefox는 폴백 폰트로 전환합니다',
+          )
+        }
+
+        setTimeout(checkFontLoaded, 100)
+        return false
+      }
+
+      document.fonts.ready.then(() => {
+        const loadTime = Math.round(performance.now() - startTime)
+        addTimelineEvent(`document.fonts.ready: ${loadTime}ms`)
+        checkFontLoaded()
+      })
+
+      checkFontLoaded()
+
+      // DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', () => {
+        const elapsed = Math.round(performance.now() - startTime)
+        addTimelineEvent(`DOMContentLoaded: ${elapsed}ms`)
+      })
+
+      // 페이지 완전 로드
+      window.addEventListener('load', () => {
+        const elapsed = Math.round(performance.now() - startTime)
+        addTimelineEvent(`페이지 로드 완료: ${elapsed}ms`)
+      })
+    </script>
+  </body>
+</html>

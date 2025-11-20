@@ -1,0 +1,18 @@
+# 이 폴더에 테스트 이미지를 추가하세요
+
+필요한 이미지:
+- hero-400.jpg (400px 너비)
+- hero-800.jpg (800px 너비)
+- hero-1200.jpg (1200px 너비)
+- logo.png (200px, 1x)
+- logo@2x.png (400px, 2x)
+- logo@3x.png (600px, 3x)
+- mobile-portrait.jpg (세로 크롭 이미지)
+- mobile-portrait@2x.jpg (세로 크롭, 2x)
+- desktop-landscape.jpg (가로 와이드 이미지)
+- desktop-landscape@2x.jpg (가로 와이드, 2x)
+
+이미지 소스:
+- Unsplash: https://unsplash.com/
+- Pexels: https://pexels.com/
+- Squoosh로 리사이즈: https://squoosh.app/

@@ -1,0 +1,120 @@
+{
+  "common": {
+    "appName": "多言語バンドル分析の例",
+    "welcome": "ようこそ",
+    "hello": "こんにちは",
+    "goodbye": "さようなら",
+    "yes": "はい",
+    "no": "いいえ",
+    "ok": "OK",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "success": "成功しました"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "about": "概要",
+    "contact": "お問い合わせ",
+    "services": "サービス",
+    "products": "製品",
+    "pricing": "料金",
+    "blog": "ブログ",
+    "faq": "よくある質問",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約"
+  },
+  "home": {
+    "title": "多言語バンドル最適化",
+    "subtitle": "ユーザーごとに必要な言語ファイルのみを読み込みます",
+    "description": "この例は、Next.jsで動的インポートを使用して言語ファイルを分割し、バンドルアナライザーで確認する方法を示しています。",
+    "features": {
+      "title": "主な機能",
+      "dynamicImport": "動的インポートで言語ファイルを分割",
+      "bundleAnalysis": "@next/bundle-analyzerでバンドル構造を確認",
+      "codeSplitting": "言語別チャンク分割で初期読み込みを最適化",
+      "lazy": "必要な言語のみを読み込んで帯域幅を節約"
+    },
+    "howToUse": {
+      "title": "使い方",
+      "step1": "1. npm installでパッケージをインストール",
+      "step2": "2. npm run analyzeでバンドル分析を実行",
+      "step3": "3. ブラウザで.next/analyze/client.htmlを確認",
+      "step4": "4. ツリーマップでko.json、en.json、ja.jsonの分離を確認"
+    }
+  },
+  "about": {
+    "title": "概要",
+    "content": "このプロジェクトは、Webパフォーマンス最適化のための多言語バンドル分割の例です。ユーザーの言語設定に応じて必要な言語ファイルのみを読み込み、初期バンドルサイズを削減します。"
+  },
+  "form": {
+    "name": "名前",
+    "email": "メールアドレス",
+    "phone": "電話番号",
+    "message": "メッセージ",
+    "submit": "送信",
+    "reset": "リセット",
+    "required": "必須項目です",
+    "invalidEmail": "有効なメールアドレスを入力してください",
+    "invalidPhone": "有効な電話番号を入力してください",
+    "tooShort": "短すぎます",
+    "tooLong": "長すぎます"
+  },
+  "product": {
+    "name": "製品名",
+    "price": "価格",
+    "description": "説明",
+    "category": "カテゴリー",
+    "stock": "在庫",
+    "addToCart": "カートに追加",
+    "buyNow": "今すぐ購入",
+    "outOfStock": "在庫切れ",
+    "inStock": "在庫あり",
+    "reviews": "レビュー",
+    "rating": "評価"
+  },
+  "cart": {
+    "title": "ショッピングカート",
+    "empty": "カートは空です",
+    "total": "合計",
+    "subtotal": "小計",
+    "tax": "税金",
+    "shipping": "送料",
+    "checkout": "チェックアウト",
+    "continueShopping": "買い物を続ける",
+    "removeItem": "アイテムを削除",
+    "updateQuantity": "数量を更新"
+  },
+  "user": {
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "register": "会員登録",
+    "profile": "プロフィール",
+    "settings": "設定",
+    "account": "アカウント",
+    "password": "パスワード",
+    "changePassword": "パスワード変更",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "rememberMe": "ログイン状態を保持"
+  },
+  "notification": {
+    "newMessage": "新しいメッセージが届きました",
+    "orderConfirmed": "注文が確認されました",
+    "shipmentSent": "配送が開始されました",
+    "deliveryCompleted": "配送が完了しました",
+    "paymentReceived": "支払いが完了しました",
+    "accountUpdated": "アカウント情報が更新されました"
+  },
+  "error": {
+    "404": "ページが見つかりません",
+    "500": "サーバーエラーが発生しました",
+    "network": "ネットワーク接続を確認してください",
+    "timeout": "リクエストがタイムアウトしました",
+    "unauthorized": "権限がありません",
+    "forbidden": "アクセスが拒否されました"
+  }
+}
