@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite modulepreload 예제</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      button {
+        background: #646cff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 10px 0;
+      }
+      button:hover {
+        background: #535bf2;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Vite modulepreload 동작 확인</h1>
+    <p>
+      이 예제는 Vite가 빌드 시 자동으로 <code>modulepreload</code> 태그를 삽입하는 것을 확인합니다.
+    </p>
+
+    <button id="load-chart">Chart 모듈 로드하기</button>
+    <div id="result"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
