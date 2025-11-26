@@ -103,7 +103,7 @@ open index.html
 - DevTools를 충분히 크게 확대
 - EventListener 항목이 화면 중앙에 오도록
 
-- # Delta 값이 명확히 보이도록
+- `# Delta` 값이 명확히 보이도록
 
 ### 스크린샷 2: Retainers View
 
