@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue DevTools Performance 테스트</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #42b883;
+    }
+    .instructions {
+      background: #e8f5e9;
+      padding: 20px;
+      border-left: 4px solid #42b883;
+      margin-bottom: 30px;
+      border-radius: 4px;
+    }
+    .instructions h2 {
+      margin-top: 0;
+      color: #2e7d32;
+    }
+    .app-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .btn-primary {
+      background: #42b883;
+      color: white;
+    }
+    .btn-danger {
+      background: #f44336;
+      color: white;
+    }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 200px;
+    }
+    .counter-display {
+      font-size: 48px;
+      font-weight: bold;
+      color: #42b883;
+      text-align: center;
+      padding: 20px;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .section h3 {
+      margin-top: 0;
+      color: #333;
+      border-bottom: 2px solid #42b883;
+      padding-bottom: 10px;
+    }
+    .item-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .item-list li {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .render-count {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    .warning-box {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    .warning-box h4 {
+      margin-top: 0;
+      color: #856404;
+    }
+    .expensive-box {
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .expensive-box.unoptimized {
+      background: #ffebee;
+    }
+    .expensive-box.optimized {
+      background: #e8f5e9;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-right: 8px;
+    }
+    .badge-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .badge-success {
+      background: #c8e6c9;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔬 Vue DevTools Performance 테스트</h1>
+
+  <div class="instructions">
+    <h2>테스트 방법</h2>
+    <ol>
+      <li><strong>Vue DevTools 설치</strong>: Chrome 확장 프로그램에서 "Vue.js devtools" 설치</li>
+      <li><strong>DevTools 열기</strong>: F12 → "Vue" 탭 선택</li>
+      <li><strong>Performance 탭</strong>: 상단의 "Performance" 또는 "Timeline" 버튼 클릭</li>
+      <li><strong>녹화 시작</strong>: 녹화 버튼 클릭</li>
+      <li><strong>아래 버튼들 클릭</strong>: 카운터 증가, 입력, 아이템 추가 등</li>
+      <li><strong>녹화 중지</strong>: 녹화 버튼 다시 클릭</li>
+      <li><strong>결과 분석</strong>: 컴포넌트별 업데이트 시간 확인</li>
+    </ol>
+    <p><strong>💡 팁:</strong> 브라우저의 Performance 탭에서도 Vue 컴포넌트별 타이밍을 볼 수 있습니다. (app.config.performance = true 설정됨)</p>
+  </div>
+
+  <div id="app"></div>
+
+  <script>
+    const { createApp, ref, computed, reactive, shallowRef, shallowReactive } = Vue;
+
+    // 렌더링 횟수 추적
+    const renderCounts = reactive({});
+
+    // 비용이 큰 계산을 시뮬레이션하는 함수
+    function expensiveCalculation(label) {
+      const start = performance.now();
+      while (performance.now() - start < 30) {
+        // 30ms 블로킹
+      }
+      renderCounts[label] = (renderCounts[label] || 0) + 1;
+      return renderCounts[label];
+    }
+
+    // 최적화 안 된 자식 컴포넌트
+    const ExpensiveChildUnoptimized = {
+      props: ['data'],
+      setup(props) {
+        return () => {
+          const count = expensiveCalculation('ExpensiveChildUnoptimized');
+          return Vue.h('div', { class: 'expensive-box unoptimized' }, [
+            Vue.h('span', { class: 'badge badge-warning' }, '❌ 최적화 안 됨 (30ms)'),
+            Vue.h('span', { class: 'render-count' }, `업데이트: ${count}회`),
+            Vue.h('p', {}, `데이터: ${props.data}`)
+          ]);
+        };
+      }
+    };
+
+    // computed를 활용한 최적화된 자식 컴포넌트
+    const ExpensiveChildOptimized = {
+      props: ['data'],
+      setup(props) {
+        // computed로 캐싱
+        const cachedResult = computed(() => {
+          const count = expensiveCalculation('ExpensiveChildOptimized');
+          return { count, data: props.data };
+        });
+
+        return () => {
+          return Vue.h('div', { class: 'expensive-box optimized' }, [
+            Vue.h('span', { class: 'badge badge-success' }, '✅ computed 캐싱'),
+            Vue.h('span', { class: 'render-count' }, `업데이트: ${cachedResult.value.count}회`),
+            Vue.h('p', {}, `데이터: ${cachedResult.value.data}`)
+          ]);
+        };
+      }
+    };
+
+    // 리스트 아이템 컴포넌트
+    const ListItem = {
+      props: ['item'],
+      emits: ['remove'],
+      setup(props, { emit }) {
+        const updateCount = ref(0);
+
+        return () => {
+          updateCount.value++;
+          return Vue.h('li', {}, [
+            Vue.h('span', {}, props.item.text),
+            Vue.h('div', {}, [
+              Vue.h('span', { class: 'render-count' }, `업데이트: ${updateCount.value}회`),
+              Vue.h('button', {
+                onClick: () => emit('remove', props.item.id),
+                style: 'margin-left: 8px; padding: 4px 8px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;'
+              }, '삭제')
+            ])
+          ]);
+        };
+      }
+    };
+
+    const app = createApp({
+      components: {
+        ExpensiveChildUnoptimized,
+        ExpensiveChildOptimized,
+        ListItem
+      },
+      setup() {
+        const count = ref(0);
+        const inputValue = ref('');
+        const items = ref([
+          { id: 1, text: '아이템 1' },
+          { id: 2, text: '아이템 2' },
+          { id: 3, text: '아이템 3' },
+        ]);
+        const staticData = '변하지 않는 데이터';
+
+        // 대용량 데이터 테스트용
+        const deepData = reactive({
+          level1: {
+            level2: {
+              level3: {
+                value: 0
+              }
+            }
+          }
+        });
+
+        const shallowData = shallowReactive({
+          nested: { value: 0 }
+        });
+
+        const addItem = () => {
+          const newId = Math.max(0, ...items.value.map(i => i.id)) + 1;
+          items.value.push({ id: newId, text: `아이템 ${newId}` });
+        };
+
+        const removeItem = (id) => {
+          const index = items.value.findIndex(item => item.id === id);
+          if (index > -1) {
+            items.value.splice(index, 1);
+          }
+        };
+
+        const updateDeepData = () => {
+          deepData.level1.level2.level3.value++;
+        };
+
+        const updateShallowData = () => {
+          // shallowReactive는 1단계만 반응형이므로 직접 객체 교체 필요
+          shallowData.nested = { value: shallowData.nested.value + 1 };
+        };
+
+        return {
+          count,
+          inputValue,
+          items,
+          staticData,
+          deepData,
+          shallowData,
+          addItem,
+          removeItem,
+          updateDeepData,
+          updateShallowData,
+          renderCounts
+        };
+      },
+      template: `
+        <div class="app-container">
+          <!-- 섹션 1: 카운터 -->
+          <div class="section">
+            <h3>1️⃣ 부모 업데이트 → 자식 업데이트 테스트</h3>
+            <p>카운터를 증가시키면 부모 컴포넌트가 업데이트됩니다.</p>
+
+            <div class="controls">
+              <button class="btn-primary" @click="count++">
+                카운터 증가
+              </button>
+              <div class="counter-display">{{ count }}</div>
+            </div>
+
+            <ExpensiveChildUnoptimized :data="staticData" />
+            <ExpensiveChildOptimized :data="staticData" />
+
+            <div class="warning-box">
+              <h4>⚠️ Vue DevTools에서 확인할 것</h4>
+              <ul>
+                <li>Vue의 반응형 시스템은 의존성을 자동 추적</li>
+                <li><strong>ExpensiveChildUnoptimized</strong>: 부모가 업데이트되면 자식도 재렌더링</li>
+                <li><strong>ExpensiveChildOptimized</strong>: computed 캐싱으로 불필요한 재계산 방지</li>
+                <li>Performance 탭에서 각 컴포넌트의 업데이트 시간 비교</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 섹션 2: 입력 필드 -->
+          <div class="section">
+            <h3>2️⃣ 입력 필드 - v-model 양방향 바인딩</h3>
+            <p>타이핑할 때마다 상태가 업데이트됩니다.</p>
+
+            <div class="controls">
+              <input
+                type="text"
+                v-model="inputValue"
+                placeholder="여기에 타이핑하세요..."
+              />
+              <span>입력값: {{ inputValue }}</span>
+            </div>
+
+            <div class="warning-box">
+              <h4>⚠️ Vue DevTools에서 확인할 것</h4>
+              <ul>
+                <li>Vue는 변경된 부분만 정확히 업데이트 (React와 다름)</li>
+                <li>입력 필드 외의 다른 컴포넌트는 업데이트되지 않음</li>
+                <li>Timeline에서 업데이트되는 컴포넌트 범위 확인</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 섹션 3: reactive vs shallowReactive -->
+          <div class="section">
+            <h3>3️⃣ reactive vs shallowReactive 비교</h3>
+            <p>깊은 반응성과 얕은 반응성의 차이를 확인해보세요.</p>
+
+            <div class="controls">
+              <button class="btn-primary" @click="updateDeepData">
+                reactive 업데이트 (깊은 반응성)
+              </button>
+              <span>값: {{ deepData.level1.level2.level3.value }}</span>
+            </div>
+
+            <div class="controls">
+              <button class="btn-primary" @click="updateShallowData">
+                shallowReactive 업데이트 (얕은 반응성)
+              </button>
+              <span>값: {{ shallowData.nested.value }}</span>
+            </div>
+
+            <div class="warning-box">
+              <h4>⚠️ 성능 팁</h4>
+              <ul>
+                <li><strong>reactive</strong>: 모든 중첩 객체를 프록시로 감싸므로 대용량 데이터에서 오버헤드 발생</li>
+                <li><strong>shallowReactive</strong>: 1단계만 반응형, 대용량 데이터에 적합</li>
+                <li>대용량 리스트나 외부 라이브러리 객체는 shallowRef/shallowReactive 사용 권장</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 섹션 4: 리스트 -->
+          <div class="section">
+            <h3>4️⃣ 리스트 렌더링</h3>
+            <p>아이템을 추가/삭제할 때 어떤 아이템이 업데이트되는지 확인해보세요.</p>
+
+            <div class="controls">
+              <button class="btn-primary" @click="addItem">
+                아이템 추가
+              </button>
+            </div>
+
+            <ul class="item-list">
+              <ListItem
+                v-for="item in items"
+                :key="item.id"
+                :item="item"
+                @remove="removeItem"
+              />
+            </ul>
+
+            <div class="warning-box">
+              <h4>⚠️ Vue DevTools에서 확인할 것</h4>
+              <ul>
+                <li>Vue는 :key를 사용해 변경된 아이템만 업데이트</li>
+                <li>아이템 삭제 시 다른 아이템은 업데이트되지 않음</li>
+                <li>:key가 없으면 전체 리스트가 재렌더링될 수 있음</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 요약 -->
+          <div class="section" style="background: #e8f5e9;">
+            <h3>📊 Vue 성능 최적화 요약</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: #c8e6c9;">
+                  <th style="padding: 10px; text-align: left; border: 1px solid #a5d6a7;">기법</th>
+                  <th style="padding: 10px; text-align: left; border: 1px solid #a5d6a7;">용도</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #a5d6a7;">computed</td>
+                  <td style="padding: 10px; border: 1px solid #a5d6a7;">의존성이 바뀔 때만 재계산</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #a5d6a7;">shallowRef / shallowReactive</td>
+                  <td style="padding: 10px; border: 1px solid #a5d6a7;">대용량 데이터의 깊은 반응성 오버헤드 방지</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #a5d6a7;">v-once</td>
+                  <td style="padding: 10px; border: 1px solid #a5d6a7;">한 번만 렌더링되는 정적 콘텐츠</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #a5d6a7;">v-memo</td>
+                  <td style="padding: 10px; border: 1px solid #a5d6a7;">조건부 메모이제이션 (v-for 내부)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `
+    });
+
+    // 개발 모드에서 성능 추적 활성화
+    app.config.performance = true;
+
+    app.mount('#app');
+
+    console.log('✅ Vue 앱이 마운트되었습니다.');
+    console.log('📊 Vue DevTools의 Performance 탭에서 컴포넌트 업데이트를 확인하세요.');
+    console.log('💡 브라우저 Performance 탭에서도 Vue 컴포넌트별 타이밍을 볼 수 있습니다.');
+  </script>
+</body>
+</html>

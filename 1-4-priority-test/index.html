@@ -150,6 +150,45 @@
     <p>fetchpriority="low" 속성으로 스크립트 우선순위가 하락했습니다.</p>
   </div>
 
+  <div class="section" style="background: #fff3cd; border-color: #ffc107;">
+    <h2>11. 프리로드 스캐너: 조기 발견 vs 늦은 발견</h2>
+    <p>Network 탭의 <strong>Waterfall</strong>에서 Queueing 시간 차이를 확인하세요.</p>
+
+    <h3 style="margin-top: 20px;">✅ 조기 발견 (HTML에 직접 선언) <span class="priority-label high">빠른 시작</span></h3>
+    <p>위의 모든 리소스는 프리로드 스캐너가 HTML 파싱 중 즉시 발견합니다.</p>
+    <ul>
+      <li>Waterfall에서 <strong>Queueing 시간이 짧음</strong> (보통 수 ms)</li>
+      <li>다운로드가 일찍 시작됨</li>
+    </ul>
+
+    <h3 style="margin-top: 20px;">❌ 늦은 발견 (JavaScript 동적 생성) <span class="priority-label low">늦은 시작</span></h3>
+    <p>아래 이미지는 JavaScript가 실행된 후에야 로드됩니다.</p>
+    <div id="dynamic-image-container" style="min-height: 100px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+      <p style="color: #6c757d;">JavaScript 실행 후 이미지가 여기에 로드됩니다...</p>
+    </div>
+    <ul>
+      <li>Waterfall에서 <strong>Queueing 시간이 김</strong> (JS 실행 대기)</li>
+      <li>다운로드 시작이 늦어짐</li>
+      <li>Network 탭에서 "dynamic-late-image"를 찾아 Waterfall 비교!</li>
+    </ul>
+
+    <script>
+      // 2초 후에 이미지를 동적으로 생성 (프리로드 스캐너가 발견 못함)
+      setTimeout(() => {
+        const container = document.getElementById('dynamic-image-container');
+        container.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = 'https://placehold.co/800x200/9b59b6/ffffff?text=Dynamic+Late+Image+(JS+Generated)';
+        img.alt = '동적 생성 이미지 - 프리로드 스캐너 미발견';
+        img.width = 800;
+        img.height = 200;
+        img.id = 'dynamic-late-image';
+        container.appendChild(img);
+        console.log('⏰ 동적 이미지 로드 시작 (2초 지연 후)');
+      }, 2000);
+    </script>
+  </div>
+
   <!-- 추가 body 끝 동기 스크립트: Low 우선순위 -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
