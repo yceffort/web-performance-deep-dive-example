@@ -354,7 +354,7 @@ node --version
 
 ### 크롬 개발자 도구에서 CLS가 측정되지 않아요
 
-1. Performance 패널 → Experience 절 확인
+1. Performance 패널 → Experience 섹션 확인
 2. Rendering 패널 → "Show layout shift regions" 활성화
 3. Console에서 CLS 점수 직접 확인 (예제 코드에 포함됨)
 
