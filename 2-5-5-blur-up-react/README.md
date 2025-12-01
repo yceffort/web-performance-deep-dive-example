@@ -42,24 +42,19 @@ import imageMetadata from './data/image-metadata.json'
 
 function HeroSection() {
   return (
-    <OptimizedImage
-      src="/images/hero.jpg"
-      alt="Hero banner"
-      loading="eager"
-      metadata={imageMetadata['hero.jpg']}
-    />
+    <OptimizedImage src="/images/hero.jpg" alt="Hero banner" loading="eager" metadata={imageMetadata['hero.jpg']} />
   )
 }
 ```
 
 ### Props
 
-| Prop | 타입 | 기본값 | 설명 |
-|------|------|--------|------|
-| `src` | string | 필수 | 이미지 경로 |
-| `alt` | string | 필수 | 대체 텍스트 |
-| `loading` | `'eager'` \| `'lazy'` | `'lazy'` | 로딩 전략 |
-| `metadata` | object | `{}` | `{ width, height, preview }` |
+| Prop       | 타입                  | 기본값   | 설명                         |
+| ---------- | --------------------- | -------- | ---------------------------- |
+| `src`      | string                | 필수     | 이미지 경로                  |
+| `alt`      | string                | 필수     | 대체 텍스트                  |
+| `loading`  | `'eager'` \| `'lazy'` | `'lazy'` | 로딩 전략                    |
+| `metadata` | object                | `{}`     | `{ width, height, preview }` |
 
 ## 프리뷰 이미지 생성
 
@@ -70,6 +65,7 @@ npm run generate
 ```
 
 이 스크립트는 `public/images/` 폴더의 모든 이미지를 스캔해서:
+
 - 이미지 크기(width, height) 추출
 - 20px 너비의 Base64 프리뷰 생성
 - `src/data/image-metadata.json`에 저장
