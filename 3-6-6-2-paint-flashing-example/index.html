@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paint Flashing & Layer Borders 예제</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .description {
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .section h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .section p {
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .demo-row {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .demo-item {
+      text-align: center;
+    }
+
+    .demo-item h3 {
+      font-size: 13px;
+      margin-bottom: 10px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .demo-item h3.bad {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .demo-item h3.good {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    /* ========== 1. Paint Flashing: width vs transform ========== */
+    .box-width {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-radius: 12px;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .box-width:hover {
+      width: 200px;
+    }
+
+    .box-transform {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      border-radius: 12px;
+      transition: transform 0.3s ease;
+      transform-origin: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .box-transform:hover {
+      transform: scaleX(1.67);
+    }
+
+    /* ========== 2. box-shadow: 페인트 vs opacity ========== */
+    .card-shadow-bad {
+      width: 200px;
+      height: 150px;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+      transition: box-shadow 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .card-shadow-bad:hover {
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-shadow-good {
+      width: 200px;
+      height: 150px;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .card-shadow-good::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .card-shadow-good:hover::after {
+      opacity: 1;
+    }
+
+    /* ========== 3. Layer Borders: will-change ========== */
+    .layer-demo {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .box-no-layer {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      transition: transform 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .box-no-layer:hover {
+      transform: scale(1.1);
+    }
+
+    .box-with-layer {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-radius: 8px;
+      transition: transform 0.3s;
+      will-change: transform;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .box-with-layer:hover {
+      transform: scale(1.1);
+    }
+
+    /* ========== 4. 연속 애니메이션 ========== */
+    .animation-row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .anim-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .anim-left {
+      background: #f5576c;
+      animation: moveLeft 2s ease-in-out infinite;
+    }
+
+    .anim-transform {
+      background: #4facfe;
+      animation: moveTransform 2s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    @keyframes moveLeft {
+      0%, 100% { margin-left: 0; }
+      50% { margin-left: 200px; }
+    }
+
+    @keyframes moveTransform {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(200px); }
+    }
+
+    .info-box {
+      margin-top: 30px;
+      padding: 20px;
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      border-radius: 8px;
+    }
+
+    .info-box h3 {
+      color: #e65100;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .info-box ol {
+      color: #e65100;
+      margin-left: 20px;
+      line-height: 1.8;
+      font-size: 13px;
+    }
+
+    .info-box code {
+      background: rgba(0,0,0,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Paint Flashing & Layer Borders 예제</h1>
+  <p class="description">
+    Chrome DevTools의 Rendering 탭에서 Paint Flashing과 Layer Borders를 켜고 각 요소를 호버해보세요.<br>
+    페인트가 발생하면 녹색으로 깜빡이고, 레이어가 분리되면 오렌지색 테두리가 표시됩니다.
+  </p>
+
+  <div class="section">
+    <h2>1. Paint Flashing: width vs transform</h2>
+    <p>Paint Flashing을 켜고 호버하세요. width는 애니메이션 내내 녹색으로 깜빡이고, transform은 처음 한 번만 깜빡입니다.</p>
+    <div class="demo-row">
+      <div class="demo-item">
+        <h3 class="bad">❌ width 변경</h3>
+        <div class="box-width">Paint 발생</div>
+      </div>
+      <div class="demo-item">
+        <h3 class="good">✅ transform 사용</h3>
+        <div class="box-transform">첫 1회만</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>2. box-shadow 최적화</h2>
+    <p>box-shadow 직접 애니메이션 vs ::after + opacity. Paint Flashing으로 차이를 확인하세요.</p>
+    <div class="demo-row">
+      <div class="demo-item">
+        <h3 class="bad">❌ box-shadow 직접</h3>
+        <div class="card-shadow-bad">Paint 발생</div>
+      </div>
+      <div class="demo-item">
+        <h3 class="good">✅ ::after + opacity</h3>
+        <div class="card-shadow-good">Paint 없음</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>3. Layer Borders: will-change</h2>
+    <p>Layer Borders를 켜면 will-change가 있는 요소만 오렌지색 테두리가 보입니다.</p>
+    <div class="layer-demo">
+      <div class="demo-item">
+        <h3 class="bad">레이어 없음</h3>
+        <div class="box-no-layer">No Layer</div>
+      </div>
+      <div class="demo-item">
+        <h3 class="good">will-change</h3>
+        <div class="box-with-layer">Layer ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>4. 연속 애니메이션 비교</h2>
+    <p>margin-left vs transform 애니메이션. Paint Flashing을 켜면 왼쪽만 계속 깜빡입니다.</p>
+    <div class="animation-row">
+      <div class="anim-box anim-left">margin</div>
+      <div class="anim-box anim-transform">transform</div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h3>테스트 방법</h3>
+    <ol>
+      <li>DevTools 열기 (F12 또는 Cmd+Option+I)</li>
+      <li><code>Cmd+Shift+P</code> → "Show Paint Flashing" 검색 → 활성화</li>
+      <li><code>Cmd+Shift+P</code> → "Show Layer Borders" 검색 → 활성화</li>
+      <li>각 요소를 호버하며 페인트 발생 여부와 레이어 분리 확인</li>
+      <li><code>Cmd+Shift+P</code> → "Show Layers" 검색 → Layers 패널에서 Compositing Reasons 확인</li>
+    </ol>
+  </div>
+</body>
+</html>
