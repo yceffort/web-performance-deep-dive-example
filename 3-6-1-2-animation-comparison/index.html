@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animation Performance Comparison: width vs transform</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .description {
+      text-align: center;
+      color: #666;
+      margin-bottom: 40px;
+    }
+
+    .comparison {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+    }
+
+    .example {
+      flex: 1;
+      max-width: 450px;
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .example h2 {
+      margin-top: 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: normal;
+    }
+
+    .badge.bad {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .badge.good {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    .animation-area {
+      min-height: 200px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin: 16px 0;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .box {
+      width: 100px;
+      height: 60px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .box-width {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .box-transform {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+    }
+
+    .sibling {
+      background: #e5e7eb;
+      color: #374151;
+      font-size: 12px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .btn-start {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-stop {
+      background: #6b7280;
+      color: white;
+    }
+
+    .info {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .info code {
+      background: #e5e7eb;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 12px;
+    }
+
+    .steps {
+      margin-top: 40px;
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .steps h2 {
+      margin-top: 0;
+    }
+
+    .steps ol {
+      padding-left: 20px;
+      line-height: 2;
+    }
+
+    .steps li {
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      background: #fef3c7;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .fps-counter {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Animation Performance Comparison</h1>
+  <p class="description">JavaScript requestAnimationFrame으로 width vs transform 비교</p>
+
+  <div class="comparison">
+    <div class="example">
+      <h2>
+        width 애니메이션
+        <span class="badge bad">Layout + Paint</span>
+      </h2>
+      <div class="animation-area" id="areaWidth">
+        <div class="box box-width" id="boxWidth">width</div>
+        <div class="box sibling">sibling 1</div>
+        <div class="box sibling">sibling 2</div>
+        <div class="box sibling">sibling 3</div>
+      </div>
+      <div class="controls">
+        <button class="btn-start" onclick="startWidth()">시작</button>
+        <button class="btn-stop" onclick="stopWidth()">정지</button>
+      </div>
+      <div class="fps-counter" id="fpsWidth">FPS: --</div>
+      <div class="info">
+        매 프레임 <code>element.style.width</code> 변경<br>
+        → Layout 재계산 (sibling도 영향)<br>
+        → Paint 발생
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>
+        transform 애니메이션
+        <span class="badge good">Composite만</span>
+      </h2>
+      <div class="animation-area" id="areaTransform">
+        <div class="box box-transform" id="boxTransform">transform</div>
+        <div class="box sibling">sibling 1</div>
+        <div class="box sibling">sibling 2</div>
+        <div class="box sibling">sibling 3</div>
+      </div>
+      <div class="controls">
+        <button class="btn-start" onclick="startTransform()">시작</button>
+        <button class="btn-stop" onclick="stopTransform()">정지</button>
+      </div>
+      <div class="fps-counter" id="fpsTransform">FPS: --</div>
+      <div class="info">
+        매 프레임 <code>element.style.transform</code> 변경<br>
+        → Layout/Paint 스킵<br>
+        → GPU Composite만 실행
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <h2>Performance 탭 캡쳐 방법</h2>
+    <ol>
+      <li>Chrome DevTools (F12) → <strong>Performance</strong> 탭</li>
+      <li>설정(⚙️)에서 <strong>CPU: 4x slowdown</strong> 선택 (차이를 더 명확히 보기 위해)</li>
+      <li>왼쪽 "시작" 클릭 → 녹화(⏺) 시작 → 2-3초 후 정지</li>
+      <li>Main 트랙 확대해서 확인:
+        <ul>
+          <li><span class="highlight">보라색 "Layout"</span> 이벤트</li>
+          <li><span class="highlight">녹색 "Paint"</span> 이벤트</li>
+        </ul>
+      </li>
+      <li>오른쪽도 동일하게 녹화 → Layout/Paint가 없는 것 확인</li>
+    </ol>
+    <p style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px;">
+      <strong>팁:</strong> Performance 탭 하단의 <strong>Summary</strong>에서 Rendering 시간 비교도 가능합니다.
+    </p>
+  </div>
+
+  <script>
+    const boxWidth = document.getElementById('boxWidth');
+    const boxTransform = document.getElementById('boxTransform');
+    const fpsWidthEl = document.getElementById('fpsWidth');
+    const fpsTransformEl = document.getElementById('fpsTransform');
+
+    let widthAnimId = null;
+    let transformAnimId = null;
+    let widthDirection = 1;
+    let transformDirection = 1;
+    let currentWidth = 100;
+    let currentScale = 1;
+
+    // FPS 측정
+    let widthFrames = 0;
+    let transformFrames = 0;
+    let widthLastTime = 0;
+    let transformLastTime = 0;
+
+    function animateWidth(timestamp) {
+      // FPS 계산
+      widthFrames++;
+      if (timestamp - widthLastTime >= 1000) {
+        fpsWidthEl.textContent = `FPS: ${widthFrames}`;
+        widthFrames = 0;
+        widthLastTime = timestamp;
+      }
+
+      // width 애니메이션 (Layout + Paint 트리거)
+      currentWidth += 3 * widthDirection;
+      if (currentWidth >= 300) widthDirection = -1;
+      if (currentWidth <= 100) widthDirection = 1;
+
+      boxWidth.style.width = currentWidth + 'px';
+
+      widthAnimId = requestAnimationFrame(animateWidth);
+    }
+
+    function animateTransform(timestamp) {
+      // FPS 계산
+      transformFrames++;
+      if (timestamp - transformLastTime >= 1000) {
+        fpsTransformEl.textContent = `FPS: ${transformFrames}`;
+        transformFrames = 0;
+        transformLastTime = timestamp;
+      }
+
+      // transform 애니메이션 (Composite만)
+      currentScale += 0.03 * transformDirection;
+      if (currentScale >= 3) transformDirection = -1;
+      if (currentScale <= 1) transformDirection = 1;
+
+      boxTransform.style.transform = `scaleX(${currentScale})`;
+
+      transformAnimId = requestAnimationFrame(animateTransform);
+    }
+
+    function startWidth() {
+      if (widthAnimId) return;
+      widthLastTime = performance.now();
+      widthAnimId = requestAnimationFrame(animateWidth);
+    }
+
+    function stopWidth() {
+      if (widthAnimId) {
+        cancelAnimationFrame(widthAnimId);
+        widthAnimId = null;
+        fpsWidthEl.textContent = 'FPS: --';
+      }
+    }
+
+    function startTransform() {
+      if (transformAnimId) return;
+      transformLastTime = performance.now();
+      transformAnimId = requestAnimationFrame(animateTransform);
+    }
+
+    function stopTransform() {
+      if (transformAnimId) {
+        cancelAnimationFrame(transformAnimId);
+        transformAnimId = null;
+        fpsTransformEl.textContent = 'FPS: --';
+      }
+    }
+  </script>
+</body>
+</html>
