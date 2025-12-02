@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layout Thrashing 성능 비교</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 { color: #333; }
+    .description {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    button:hover { transform: scale(1.02); }
+    button:active { transform: scale(0.98); }
+    .bad { background: #e74c3c; color: white; }
+    .good { background: #27ae60; color: white; }
+    .reset { background: #95a5a6; color: white; }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    input[type="number"] {
+      width: 100px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .results {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .result-item:last-child { border-bottom: none; }
+    .time { font-weight: bold; font-size: 18px; }
+    .time.bad-time { color: #e74c3c; }
+    .time.good-time { color: #27ae60; }
+    .comparison {
+      background: #3498db;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    .box-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      max-height: 400px;
+      overflow: auto;
+    }
+    .box {
+      width: 30px;
+      height: 30px;
+      background: #3498db;
+      border-radius: 4px;
+      transition: none;
+    }
+    .tip {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .tip strong { color: #856404; }
+  </style>
+</head>
+<body>
+  <h1>Layout Thrashing 성능 비교</h1>
+
+  <div class="description">
+    <h3>Layout Thrashing이란?</h3>
+    <p>DOM을 읽고(offsetHeight) 쓰는(style.height) 작업을 반복하면, 브라우저는 매번 레이아웃을 다시 계산해야 합니다.</p>
+    <ul>
+      <li><strong>나쁜 예</strong>: 읽기 → 쓰기 → 읽기 → 쓰기... (N번의 레이아웃 계산)</li>
+      <li><strong>좋은 예</strong>: 읽기 → 읽기 → ... → 쓰기 → 쓰기... (1번의 레이아웃 계산)</li>
+    </ul>
+  </div>
+
+  <div class="tip">
+    <strong>💡 DevTools에서 확인하기:</strong> Performance 탭에서 "Recalculate Style"과 "Layout" 이벤트가 얼마나 반복되는지 확인하세요.
+  </div>
+
+  <div class="controls">
+    <label>
+      박스 개수:
+      <input type="number" id="boxCount" value="500" min="100" max="5000" step="100">
+    </label>
+    <button class="reset" onclick="resetBoxes()">박스 생성/리셋</button>
+    <button class="bad" onclick="runBadExample()">나쁜 예 실행</button>
+    <button class="good" onclick="runGoodExample()">좋은 예 실행</button>
+  </div>
+
+  <div class="results">
+    <h3>실행 결과</h3>
+    <div class="result-item">
+      <span>나쁜 예 (읽기/쓰기 반복)</span>
+      <span class="time bad-time" id="badTime">-</span>
+    </div>
+    <div class="result-item">
+      <span>좋은 예 (읽기/쓰기 분리)</span>
+      <span class="time good-time" id="goodTime">-</span>
+    </div>
+    <div class="comparison" id="comparison" style="display: none;"></div>
+  </div>
+
+  <div class="box-container" id="container"></div>
+
+  <script>
+    let boxes = [];
+
+    function resetBoxes() {
+      const count = parseInt(document.getElementById('boxCount').value);
+      const container = document.getElementById('container');
+      container.innerHTML = '';
+      boxes = [];
+
+      for (let i = 0; i < count; i++) {
+        const box = document.createElement('div');
+        box.className = 'box';
+        box.style.height = '30px';
+        container.appendChild(box);
+        boxes.push(box);
+      }
+
+      document.getElementById('badTime').textContent = '-';
+      document.getElementById('goodTime').textContent = '-';
+      document.getElementById('comparison').style.display = 'none';
+    }
+
+    function runBadExample() {
+      if (boxes.length === 0) {
+        alert('먼저 박스를 생성하세요!');
+        return;
+      }
+
+      // 박스 높이 리셋
+      boxes.forEach(box => box.style.height = '30px');
+
+      // 강제 리플로우
+      void document.body.offsetHeight;
+
+      const start = performance.now();
+
+      // 나쁜 예: 읽기와 쓰기를 반복
+      boxes.forEach((box) => {
+        const height = box.offsetHeight;  // 읽기 (레이아웃 계산 유발)
+        box.style.height = height + 1 + 'px';  // 쓰기 (레이아웃 무효화)
+      });
+
+      const end = performance.now();
+      const time = (end - start).toFixed(2);
+      document.getElementById('badTime').textContent = time + 'ms';
+      updateComparison();
+    }
+
+    function runGoodExample() {
+      if (boxes.length === 0) {
+        alert('먼저 박스를 생성하세요!');
+        return;
+      }
+
+      // 박스 높이 리셋
+      boxes.forEach(box => box.style.height = '30px');
+
+      // 강제 리플로우
+      void document.body.offsetHeight;
+
+      const start = performance.now();
+
+      // 좋은 예: 모든 읽기를 먼저, 모든 쓰기를 나중에
+      const heights = boxes.map((box) => box.offsetHeight);  // 모든 읽기 먼저
+      boxes.forEach((box, i) => {
+        box.style.height = heights[i] + 1 + 'px';  // 모든 쓰기 나중에
+      });
+
+      const end = performance.now();
+      const time = (end - start).toFixed(2);
+      document.getElementById('goodTime').textContent = time + 'ms';
+      updateComparison();
+    }
+
+    function updateComparison() {
+      const badTime = parseFloat(document.getElementById('badTime').textContent);
+      const goodTime = parseFloat(document.getElementById('goodTime').textContent);
+
+      if (!isNaN(badTime) && !isNaN(goodTime) && goodTime > 0) {
+        const ratio = (badTime / goodTime).toFixed(1);
+        const diff = (badTime - goodTime).toFixed(2);
+        document.getElementById('comparison').textContent =
+          `좋은 예가 ${ratio}배 빠름 (${diff}ms 절약)`;
+        document.getElementById('comparison').style.display = 'block';
+      }
+    }
+
+    // 초기 박스 생성
+    resetBoxes();
+  </script>
+</body>
+</html>
