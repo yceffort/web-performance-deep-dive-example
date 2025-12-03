@@ -177,6 +177,10 @@
       <h3>서드파티 리소스 분석</h3>
       <pre id="metrics-output">페이지 로드 완료 대기 중...</pre>
     </div>
+    <div class="metrics" style="margin-top: 1rem; background: #fef3c7; border-color: #fcd34d;">
+      <h3 style="color: #92400e;">ThirdPartyMonitor 리포트</h3>
+      <pre id="monitor-output" style="color: #d97706;">페이지 로드 완료 대기 중...</pre>
+    </div>
   </div>
 
   <!-- Twitter 위젯 스크립트 (실제 서드파티) -->
@@ -248,6 +252,128 @@
       setTimeout(updateMetrics, 2000);
       setTimeout(updateMetrics, 5000);
     });
+  </script>
+
+  <!-- ThirdPartyMonitor: 서드파티 성능 모니터링 클래스 -->
+  <script>
+    class ThirdPartyMonitor {
+      constructor() {
+        this.metrics = {
+          scripts: new Map(),
+          totalBlockingTime: 0,
+          networkRequests: [],
+        }
+        this.init()
+      }
+
+      init() {
+        if (!('PerformanceObserver' in window)) {
+          console.warn('PerformanceObserver를 지원하지 않는 브라우저입니다.')
+          return
+        }
+
+        const resourceObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            this.processResourceEntry(entry)
+          }
+        })
+
+        resourceObserver.observe({ entryTypes: ['resource'] })
+
+        const longTaskObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            this.totalBlockingTime += Math.max(0, entry.duration - 50)
+          }
+        })
+
+        try {
+          longTaskObserver.observe({ entryTypes: ['longtask'] })
+        } catch (e) {
+          console.warn('Long Task API를 지원하지 않는 브라우저입니다.')
+        }
+      }
+
+      processResourceEntry(entry) {
+        try {
+          const url = new URL(entry.name)
+          if (url.hostname === location.hostname) return
+
+          const domain = url.hostname
+          const scriptMetrics = this.metrics.scripts.get(domain) || {
+            count: 0,
+            totalDuration: 0,
+            totalSize: 0,
+            resources: [],
+          }
+
+          scriptMetrics.count++
+          scriptMetrics.totalDuration += entry.duration
+          scriptMetrics.totalSize += entry.transferSize || 0
+          scriptMetrics.resources.push({
+            url: entry.name,
+            duration: entry.duration,
+            size: entry.transferSize,
+            startTime: entry.startTime,
+          })
+
+          this.metrics.scripts.set(domain, scriptMetrics)
+        } catch (e) {
+          // URL 파싱 실패 시 무시
+        }
+      }
+
+      getReport() {
+        return {
+          topOffenders: Array.from(this.metrics.scripts.entries())
+            .map(([domain, metrics]) => ({ domain, ...metrics }))
+            .sort((a, b) => b.totalDuration - a.totalDuration)
+            .slice(0, 10),
+          totalRequests: this.metrics.networkRequests.length,
+          totalBlockingTime: this.metrics.totalBlockingTime,
+        }
+      }
+
+      sendToAnalytics() {
+        const report = this.getReport()
+
+        if (window.gtag) {
+          gtag('event', 'third_party_performance', {
+            top_domain: report.topOffenders[0]?.domain,
+            total_requests: report.totalRequests,
+            total_blocking_time: report.totalBlockingTime,
+          })
+        }
+      }
+    }
+
+    const monitor = new ThirdPartyMonitor()
+
+    function updateMonitorOutput() {
+      const report = monitor.getReport()
+      const output = document.getElementById('monitor-output')
+
+      let text = `Top Offenders (네트워크 시간 기준):\n`
+      text += `${'─'.repeat(50)}\n`
+
+      report.topOffenders.forEach((item, idx) => {
+        text += `${idx + 1}. ${item.domain}\n`
+        text += `   요청: ${item.count}개 | 총 시간: ${item.totalDuration.toFixed(0)}ms\n`
+        text += `   크기: ${item.totalSize > 0 ? (item.totalSize / 1024).toFixed(1) + 'KB' : '(측정 불가)'}\n\n`
+      })
+
+      text += `${'─'.repeat(50)}\n`
+      text += `Total Blocking Time: ${report.totalBlockingTime.toFixed(0)}ms`
+
+      output.textContent = text
+    }
+
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        console.log('서드파티 성능 리포트:', monitor.getReport())
+        updateMonitorOutput()
+        monitor.sendToAnalytics()
+      }, 5000)
+    })
   </script>
 </body>
 </html>
