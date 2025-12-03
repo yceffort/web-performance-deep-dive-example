@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>서드파티 스크립트 병목 데모 (실제)</title>
+
+  <!-- Google Tag Manager (yceffort.kr) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ND58S24JBX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-ND58S24JBX');
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fafafa;
+    }
+    h1 { margin-bottom: 0.5rem; color: #1a1a1a; }
+    .subtitle { color: #666; margin-bottom: 2rem; }
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .section h2 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section h2 .badge {
+      font-size: 0.7rem;
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .section p { margin-bottom: 1rem; color: #444; }
+    .youtube-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    .youtube-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .metrics {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+    .metrics h3 {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: #166534;
+    }
+    .metrics pre {
+      background: #1a1a1a;
+      color: #4ade80;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .instructions {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+    .instructions h3 {
+      color: #1e40af;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .instructions ol {
+      margin-left: 1.2rem;
+      color: #1e3a8a;
+      font-size: 0.9rem;
+    }
+    .instructions li { margin-bottom: 0.3rem; }
+    .twitter-embed {
+      min-height: 300px;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+  </style>
+</head>
+<body>
+  <h1>서드파티 스크립트 병목 데모</h1>
+  <p class="subtitle">실제 서드파티 스크립트가 메인 스레드를 차단하는 것을 확인하세요</p>
+
+  <div class="instructions">
+    <h3>Performance 탭에서 확인하는 방법</h3>
+    <ol>
+      <li>개발자 도구 열기 (F12 또는 Cmd+Option+I)</li>
+      <li><strong>Performance</strong> 탭 선택</li>
+      <li>녹화 버튼(●) 클릭 후 <strong>Cmd+R</strong>로 페이지 새로고침</li>
+      <li>로드 완료 후 녹화 중지</li>
+      <li>Main 트랙에서 <strong>노란색 블록</strong> 확인 (JS 실행)</li>
+      <li>50ms 이상 Long Task는 <strong>빨간 삼각형</strong>으로 표시됨</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>
+      Google Tag Manager (GA4)
+      <span class="badge">~130KB JS</span>
+    </h2>
+    <p>가장 널리 사용되는 서드파티 스크립트다. <code>googletagmanager.com</code>에서 gtag.js를 로드하며, Performance 탭에서 스크립트 평가(Evaluate Script) 시간을 확인할 수 있다. 이 페이지는 실제 GA4 추적 ID(G-ND58S24JBX)를 사용한다.</p>
+  </div>
+
+  <div class="section">
+    <h2>
+      YouTube 임베드
+      <span class="badge">~500KB+ JS</span>
+    </h2>
+    <p>YouTube iframe은 페이지 로드 시 수백 KB의 자바스크립트를 다운로드한다. Network 탭에서 <code>www.youtube.com</code>, <code>i.ytimg.com</code> 등의 요청을 확인할 수 있다.</p>
+    <div class="youtube-container">
+      <iframe
+        src="https://www.youtube.com/embed/cY9NiA55tII"
+        title="YouTube video"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="eager">
+      </iframe>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>
+      X(Twitter) 임베드
+      <span class="badge">~1MB+ JS</span>
+    </h2>
+    <p>Twitter 위젯은 가장 무거운 서드파티 임베드 중 하나다. <code>platform.twitter.com</code>에서 대용량 스크립트를 로드하며, Performance 탭의 Main 트랙에서 긴 노란색 블록으로 확인할 수 있다.</p>
+    <div class="twitter-embed">
+      <blockquote class="twitter-tweet">
+        <p lang="in" dir="ltr">Introducing Bun v1.3 <a href="https://t.co/GdwAaLh5wD">https://t.co/GdwAaLh5wD</a></p>
+        &mdash; Bun (@bunjavascript) <a href="https://twitter.com/bunjavascript/status/1976749963322572861?ref_src=twsrc%5Etfw">October 10, 2025</a>
+      </blockquote>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>측정 결과</h2>
+    <p>페이지 로드 완료 후 서드파티 리소스 통계:</p>
+    <div class="metrics">
+      <h3>서드파티 리소스 분석</h3>
+      <pre id="metrics-output">페이지 로드 완료 대기 중...</pre>
+    </div>
+  </div>
+
+  <!-- Twitter 위젯 스크립트 (실제 서드파티) -->
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+  <!-- 서드파티 분석 스크립트 -->
+  <script>
+    function analyzeThirdPartyResources() {
+      const resources = performance.getEntriesByType('resource');
+      const thirdParty = resources.filter(entry => {
+        try {
+          const url = new URL(entry.name);
+          return url.hostname !== location.hostname;
+        } catch (e) {
+          return false;
+        }
+      });
+
+      const byDomain = {};
+      thirdParty.forEach(entry => {
+        try {
+          const url = new URL(entry.name);
+          const domain = url.hostname;
+          if (!byDomain[domain]) {
+            byDomain[domain] = { count: 0, size: 0, duration: 0 };
+          }
+          byDomain[domain].count++;
+          byDomain[domain].size += entry.transferSize || 0;
+          byDomain[domain].duration += entry.duration;
+        } catch (e) {}
+      });
+
+      return {
+        totalCount: thirdParty.length,
+        totalSize: thirdParty.reduce((sum, e) => sum + (e.transferSize || 0), 0),
+        byDomain: Object.entries(byDomain)
+          .sort((a, b) => b[1].size - a[1].size)
+          .slice(0, 10)
+      };
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function updateMetrics() {
+      const stats = analyzeThirdPartyResources();
+      const output = document.getElementById('metrics-output');
+
+      let text = `총 서드파티 요청: ${stats.totalCount}개\n`;
+      text += `총 전송 크기: ${formatBytes(stats.totalSize)}\n\n`;
+      text += `도메인별 분석:\n`;
+      text += `${'─'.repeat(50)}\n`;
+
+      stats.byDomain.forEach(([domain, data]) => {
+        text += `${domain}\n`;
+        text += `  요청: ${data.count}개 | 크기: ${formatBytes(data.size)}\n`;
+      });
+
+      text += `\n※ Performance 탭 > Bottom-Up에서\n`;
+      text += `  "Group by Domain"으로 CPU 시간도 확인하세요`;
+
+      output.textContent = text;
+    }
+
+    window.addEventListener('load', () => {
+      setTimeout(updateMetrics, 2000);
+      setTimeout(updateMetrics, 5000);
+    });
+  </script>
+</body>
+</html>

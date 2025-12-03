@@ -6,7 +6,7 @@
 - **브라우저**: Chrome (최신 버전)
 - **네트워크**: 일반 네트워크 환경
 - **캐시**: 비활성화 (Disable cache)
-- **동영상**: YouTube 테스트 영상 (dQw4w9WgXcQ)
+- **동영상**: YouTube 테스트 영상 (cY9NiA55tII)
 
 ## 측정 결과
 

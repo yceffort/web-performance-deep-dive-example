@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
@@ -46,19 +46,14 @@
         <li>Network 탭으로 이동</li>
         <li>페이지 새로고침 (Cmd/Ctrl + R)</li>
         <li>JS 필터 적용하여 자바스크립트만 보기</li>
-        <li>
-          하단의 transferred 크기 확인 (youtube.com 및 관련 도메인 합산)
-        </li>
+        <li>하단의 transferred 크기 확인 (youtube.com 및 관련 도메인 합산)</li>
       </ol>
-      <p>
-        <strong>측정 조건:</strong> 시크릿 모드, 캐시 비활성화 (Disable
-        cache), Fast 3G 네트워크
-      </p>
+      <p><strong>측정 조건:</strong> 시크릿 모드, 캐시 비활성화 (Disable cache), Fast 3G 네트워크</p>
     </div>
 
     <div class="video-container">
       <iframe
-        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+        src="https://www.youtube.com/embed/cY9NiA55tII"
         title="YouTube video player"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -68,24 +63,20 @@
 
     <script>
       window.addEventListener('load', () => {
-        const entries = performance.getEntriesByType('resource');
-        const youtubeResources = entries.filter((entry) =>
-          entry.name.includes('youtube.com')
-        );
+        const entries = performance.getEntriesByType('resource')
+        const youtubeResources = entries.filter((entry) => entry.name.includes('youtube.com'))
 
-        console.log('=== YouTube 리소스 측정 ===');
-        console.log('총 요청 수:', youtubeResources.length);
+        console.log('=== YouTube 리소스 측정 ===')
+        console.log('총 요청 수:', youtubeResources.length)
 
-        let totalSize = 0;
+        let totalSize = 0
         youtubeResources.forEach((resource) => {
-          console.log(
-            `${resource.name}: ${(resource.transferSize / 1024).toFixed(2)} KB`
-          );
-          totalSize += resource.transferSize;
-        });
+          console.log(`${resource.name}: ${(resource.transferSize / 1024).toFixed(2)} KB`)
+          totalSize += resource.transferSize
+        })
 
-        console.log(`총 전송 크기: ${(totalSize / 1024).toFixed(2)} KB`);
-      });
+        console.log(`총 전송 크기: ${(totalSize / 1024).toFixed(2)} KB`)
+      })
     </script>
   </body>
 </html>

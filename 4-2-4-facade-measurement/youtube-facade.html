@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
@@ -93,83 +93,67 @@
         <li><strong>재생 버튼을 클릭하지 않고</strong> 초기 로드만 측정</li>
         <li>하단의 transferred 크기 확인</li>
       </ol>
-      <p>
-        <strong>측정 조건:</strong> 시크릿 모드, 캐시 비활성화, Fast 3G
-        네트워크
-      </p>
+      <p><strong>측정 조건:</strong> 시크릿 모드, 캐시 비활성화, Fast 3G 네트워크</p>
       <p><strong>비교:</strong> 재생 버튼 클릭 후 추가 로드되는 크기 확인</p>
     </div>
 
     <div class="video-container">
-      <div
-        class="youtube-facade"
-        id="youtube-facade"
-        data-video-id="dQw4w9WgXcQ"
-      >
+      <div class="youtube-facade" id="youtube-facade" data-video-id="cY9NiA55tII">
         <div class="play-button"></div>
       </div>
     </div>
 
     <script>
-      const facade = document.getElementById('youtube-facade');
-      const videoId = facade.dataset.videoId;
+      const facade = document.getElementById('youtube-facade')
+      const videoId = facade.dataset.videoId
 
-      facade.style.backgroundImage = `url(https://img.youtube.com/vi/${videoId}/maxresdefault.jpg)`;
+      facade.style.backgroundImage = `url(https://img.youtube.com/vi/${videoId}/maxresdefault.jpg)`
 
-      let initialLoadSize = 0;
+      let initialLoadSize = 0
       window.addEventListener('load', () => {
-        const entries = performance.getEntriesByType('resource');
+        const entries = performance.getEntriesByType('resource')
         entries.forEach((resource) => {
-          initialLoadSize += resource.transferSize;
-        });
+          initialLoadSize += resource.transferSize
+        })
 
-        console.log('=== 초기 로드 측정 ===');
-        console.log(
-          `초기 전송 크기: ${(initialLoadSize / 1024).toFixed(2)} KB`
-        );
-        console.log('YouTube iframe 로드 안됨 (Facade만 렌더링)');
-      });
+        console.log('=== 초기 로드 측정 ===')
+        console.log(`초기 전송 크기: ${(initialLoadSize / 1024).toFixed(2)} KB`)
+        console.log('YouTube iframe 로드 안됨 (Facade만 렌더링)')
+      })
 
       facade.addEventListener('click', () => {
-        const beforeClick = performance.now();
+        const beforeClick = performance.now()
 
-        const iframe = document.createElement('iframe');
-        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-        iframe.title = 'YouTube video player';
-        iframe.frameBorder = '0';
-        iframe.allow =
-          'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-        iframe.allowFullscreen = true;
+        const iframe = document.createElement('iframe')
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`
+        iframe.title = 'YouTube video player'
+        iframe.frameBorder = '0'
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+        iframe.allowFullscreen = true
 
-        facade.parentElement.appendChild(iframe);
-        facade.remove();
+        facade.parentElement.appendChild(iframe)
+        facade.remove()
 
         iframe.addEventListener('load', () => {
-          const afterClick = performance.now();
-          const clickLoadTime = afterClick - beforeClick;
+          const afterClick = performance.now()
+          const clickLoadTime = afterClick - beforeClick
 
-          const entries = performance.getEntriesByType('resource');
+          const entries = performance.getEntriesByType('resource')
           const youtubeResources = entries.filter(
-            (entry) =>
-              entry.name.includes('youtube.com') &&
-              entry.startTime > beforeClick
-          );
+            (entry) => entry.name.includes('youtube.com') && entry.startTime > beforeClick,
+          )
 
-          let clickLoadSize = 0;
+          let clickLoadSize = 0
           youtubeResources.forEach((resource) => {
-            clickLoadSize += resource.transferSize;
-          });
+            clickLoadSize += resource.transferSize
+          })
 
-          console.log('=== 클릭 후 추가 로드 측정 ===');
-          console.log(`로드 시간: ${clickLoadTime.toFixed(2)} ms`);
-          console.log(
-            `추가 전송 크기: ${(clickLoadSize / 1024).toFixed(2)} KB`
-          );
-          console.log(
-            `총 전송 크기: ${((initialLoadSize + clickLoadSize) / 1024).toFixed(2)} KB`
-          );
-        });
-      });
+          console.log('=== 클릭 후 추가 로드 측정 ===')
+          console.log(`로드 시간: ${clickLoadTime.toFixed(2)} ms`)
+          console.log(`추가 전송 크기: ${(clickLoadSize / 1024).toFixed(2)} KB`)
+          console.log(`총 전송 크기: ${((initialLoadSize + clickLoadSize) / 1024).toFixed(2)} KB`)
+        })
+      })
     </script>
   </body>
 </html>
