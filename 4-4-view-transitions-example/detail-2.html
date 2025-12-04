@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
+    <title>무선 키보드 - View Transitions Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <a href="index.html" class="back-button">&larr; 목록으로</a>
+      <h1 style="view-transition-name: page-title">상품 상세</h1>
+    </header>
+
+    <main class="product-detail">
+      <div class="detail-image-container">
+        <img
+          src="images/product2.jpg"
+          alt="무선 키보드"
+          class="detail-image"
+          style="view-transition-name: product-image-2"
+        />
+      </div>
+
+      <div class="detail-info">
+        <h2 class="detail-title" style="view-transition-name: product-title-2">무선 키보드</h2>
+        <p class="detail-price">₩159,000</p>
+        <p class="detail-description">
+          저소음 기계식 스위치를 탑재한 무선 키보드입니다.
+          Bluetooth 5.0과 2.4GHz 무선 연결을 동시에 지원하며,
+          최대 3대의 기기를 동시에 연결할 수 있습니다.
+        </p>
+
+        <div class="detail-specs">
+          <h3>제품 사양</h3>
+          <ul>
+            <li>저소음 기계식 스위치</li>
+            <li>Bluetooth 5.0 + 2.4GHz</li>
+            <li>RGB 백라이트</li>
+            <li>200시간 배터리</li>
+          </ul>
+        </div>
+
+        <button class="buy-button">구매하기</button>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>View Transitions API Demo - MPA (Cross-Document) 예제</p>
+    </footer>
+  </body>
+</html>

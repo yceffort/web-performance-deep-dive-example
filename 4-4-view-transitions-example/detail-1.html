@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
+    <title>프리미엄 헤드폰 - View Transitions Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <a href="index.html" class="back-button">&larr; 목록으로</a>
+      <h1 style="view-transition-name: page-title">상품 상세</h1>
+    </header>
+
+    <main class="product-detail">
+      <div class="detail-image-container">
+        <img
+          src="images/product1.jpg"
+          alt="프리미엄 헤드폰"
+          class="detail-image"
+          style="view-transition-name: product-image-1"
+        />
+      </div>
+
+      <div class="detail-info">
+        <h2 class="detail-title" style="view-transition-name: product-title-1">프리미엄 헤드폰</h2>
+        <p class="detail-price">₩299,000</p>
+        <p class="detail-description">
+          고품질 드라이버와 프리미엄 소재로 제작된 헤드폰입니다.
+          40시간 연속 재생이 가능하며, 노이즈 캔슬링 기능을 탑재했습니다.
+          편안한 착용감과 뛰어난 음질을 동시에 경험해보세요.
+        </p>
+
+        <div class="detail-specs">
+          <h3>제품 사양</h3>
+          <ul>
+            <li>40mm 커스텀 드라이버</li>
+            <li>액티브 노이즈 캔슬링</li>
+            <li>40시간 배터리</li>
+            <li>1년 무상 보증</li>
+          </ul>
+        </div>
+
+        <button class="buy-button">구매하기</button>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>View Transitions API Demo - MPA (Cross-Document) 예제</p>
+    </footer>
+  </body>
+</html>

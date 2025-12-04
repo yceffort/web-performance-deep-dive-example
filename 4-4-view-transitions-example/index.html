@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
+    <title>상품 목록 - View Transitions Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1 style="view-transition-name: page-title">상품 목록</h1>
+    </header>
+
+    <main class="product-grid">
+      <a href="detail-1.html" class="product-card">
+        <img
+          src="images/product1.jpg"
+          alt="상품 1"
+          style="view-transition-name: product-image-1"
+        />
+        <div class="product-info">
+          <h2 style="view-transition-name: product-title-1">프리미엄 헤드폰</h2>
+          <p class="price">₩299,000</p>
+        </div>
+      </a>
+
+      <a href="detail-2.html" class="product-card">
+        <img
+          src="images/product2.jpg"
+          alt="상품 2"
+          style="view-transition-name: product-image-2"
+        />
+        <div class="product-info">
+          <h2 style="view-transition-name: product-title-2">무선 키보드</h2>
+          <p class="price">₩159,000</p>
+        </div>
+      </a>
+
+      <a href="detail-3.html" class="product-card">
+        <img
+          src="images/product3.jpg"
+          alt="상품 3"
+          style="view-transition-name: product-image-3"
+        />
+        <div class="product-info">
+          <h2 style="view-transition-name: product-title-3">스마트 워치</h2>
+          <p class="price">₩450,000</p>
+        </div>
+      </a>
+
+      <a href="detail-4.html" class="product-card">
+        <img
+          src="images/product4.jpg"
+          alt="상품 4"
+          style="view-transition-name: product-image-4"
+        />
+        <div class="product-info">
+          <h2 style="view-transition-name: product-title-4">블루투스 스피커</h2>
+          <p class="price">₩89,000</p>
+        </div>
+      </a>
+    </main>
+
+    <footer class="footer">
+      <p>View Transitions API Demo - MPA (Cross-Document) 예제</p>
+      <p class="browser-support"></p>
+    </footer>
+
+    <script>
+      const supportText = document.querySelector('.browser-support')
+      if (document.startViewTransition) {
+        supportText.textContent = '✅ 이 브라우저는 View Transitions API를 지원합니다.'
+        supportText.style.color = '#22c55e'
+      } else {
+        supportText.textContent = '❌ 이 브라우저는 View Transitions API를 지원하지 않습니다.'
+        supportText.style.color = '#ef4444'
+      }
+    </script>
+  </body>
+</html>
