@@ -50,10 +50,10 @@
     </div>
 
     <script>
-      const info = document.getElementById('load-info')
-      const navEntry = performance.getEntriesByType('navigation')[0]
-      if (navEntry) {
-        const activationStart = navEntry.activationStart || 0
+      function updatePrerenderStatus() {
+        const info = document.getElementById('load-info')
+        const navEntry = performance.getEntriesByType('navigation')[0]
+        const activationStart = navEntry.activationStart ?? 0
         const isPrerendered = activationStart > 0
 
         info.innerHTML = `
@@ -66,6 +66,12 @@
             ? '→ 0보다 큼 = 페이지가 백그라운드에서 미리 렌더링되었음'
             : '→ 0 = 클릭 후 렌더링 시작'}</small>
         `
+      }
+
+      if (document.prerendering) {
+        document.addEventListener('prerenderingchange', updatePrerenderStatus)
+      } else {
+        updatePrerenderStatus()
       }
     </script>
   </body>

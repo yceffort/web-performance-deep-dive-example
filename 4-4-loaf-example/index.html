@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Long Animation Frames API Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Long Animation Frames (LoAF) API Demo</h1>
+        <p class="subtitle">INP 문제를 일으키는 긴 작업을 감지하고 디버깅하기</p>
+        <p class="support-status" id="support-status"></p>
+      </header>
+
+      <main class="main">
+        <section class="info-box">
+          <h2>LoAF API란?</h2>
+          <p>
+            Long Animation Frames API는 50ms를 초과하는 렌더링 작업을 감지합니다.
+            기존 Long Tasks API와 달리 <strong>스크립트 소스, 함수명, 실행 시간</strong>까지 알 수 있어
+            INP 문제의 정확한 원인을 파악할 수 있습니다.
+          </p>
+        </section>
+
+        <section class="demo-section">
+          <h2>인터랙션 테스트</h2>
+          <p class="description">
+            아래 버튼을 클릭하면 의도적으로 긴 작업이 실행됩니다.
+            LoAF API가 이를 감지하여 아래 로그에 표시합니다.
+          </p>
+
+          <div class="button-grid">
+            <button class="demo-btn slow" onclick="runSlowTask()">
+              <span class="btn-icon">🐢</span>
+              <span class="btn-label">느린 작업 (200ms)</span>
+              <span class="btn-desc">메인 스레드 블로킹</span>
+            </button>
+
+            <button class="demo-btn very-slow" onclick="runVerySlowTask()">
+              <span class="btn-icon">🦥</span>
+              <span class="btn-label">매우 느린 작업 (500ms)</span>
+              <span class="btn-desc">심각한 INP 영향</span>
+            </button>
+
+            <button class="demo-btn optimized" onclick="runOptimizedTask()">
+              <span class="btn-icon">⚡</span>
+              <span class="btn-label">최적화된 작업</span>
+              <span class="btn-desc">yield로 분할 실행</span>
+            </button>
+
+            <button class="demo-btn fast" onclick="runFastTask()">
+              <span class="btn-icon">🚀</span>
+              <span class="btn-label">빠른 작업 (10ms)</span>
+              <span class="btn-desc">LoAF 미감지</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="log-section">
+          <div class="log-header">
+            <h2>LoAF 감지 로그</h2>
+            <button class="clear-btn" onclick="clearLog()">로그 지우기</button>
+          </div>
+          <div class="log-container" id="log-container">
+            <p class="log-placeholder">버튼을 클릭하면 LoAF 감지 결과가 여기에 표시됩니다.</p>
+          </div>
+        </section>
+
+        <section class="code-section">
+          <h2>LoAF 감지 코드</h2>
+          <pre><code>const observer = new PerformanceObserver((list) => {
+  for (const entry of list.getEntries()) {
+    console.log('LoAF 감지:', {
+      duration: entry.duration,           // 전체 프레임 시간
+      blockingDuration: entry.blockingDuration, // 블로킹 시간
+      scripts: entry.scripts.map(s => ({
+        name: s.name,                     // 함수명
+        source: s.sourceURL,              // 스크립트 파일
+        duration: s.duration              // 실행 시간
+      }))
+    })
+  }
+})
+
+observer.observe({ type: 'long-animation-frame', buffered: true })</code></pre>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>Long Animation Frames API - Chrome 123+ 지원</p>
+      </footer>
+    </div>
+
+    <script>
+      // 브라우저 지원 확인
+      const supportStatus = document.getElementById('support-status')
+      if (PerformanceObserver.supportedEntryTypes?.includes('long-animation-frame')) {
+        supportStatus.textContent = '✅ 이 브라우저는 LoAF API를 지원합니다.'
+        supportStatus.style.color = '#22c55e'
+      } else {
+        supportStatus.textContent = '❌ 이 브라우저는 LoAF API를 지원하지 않습니다. Chrome 123+에서 테스트하세요.'
+        supportStatus.style.color = '#ef4444'
+      }
+
+      const logContainer = document.getElementById('log-container')
+      let logCount = 0
+
+      // LoAF Observer 설정
+      if (PerformanceObserver.supportedEntryTypes?.includes('long-animation-frame')) {
+        const observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            logLoAF(entry)
+          }
+        })
+        observer.observe({ type: 'long-animation-frame', buffered: true })
+      }
+
+      function logLoAF(entry) {
+        logCount++
+        const logItem = document.createElement('div')
+        logItem.className = 'log-item'
+
+        const severity = entry.duration > 200 ? 'critical' : entry.duration > 100 ? 'warning' : 'info'
+        logItem.classList.add(severity)
+
+        const scripts = entry.scripts.map(s => {
+          const funcName = s.name || '(anonymous)'
+          const source = s.sourceURL ? s.sourceURL.split('/').pop() : '(inline)'
+          return `${funcName} (${source}) - ${Math.round(s.duration)}ms`
+        }).join('<br>')
+
+        logItem.innerHTML = `
+          <div class="log-header-row">
+            <span class="log-number">#${logCount}</span>
+            <span class="log-time">${new Date().toLocaleTimeString()}</span>
+          </div>
+          <div class="log-metrics">
+            <div class="metric">
+              <span class="metric-label">Duration</span>
+              <span class="metric-value ${severity}">${Math.round(entry.duration)}ms</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Blocking</span>
+              <span class="metric-value">${Math.round(entry.blockingDuration)}ms</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Render</span>
+              <span class="metric-value">${Math.round(entry.renderStart ? entry.duration - entry.renderStart + entry.startTime : 0)}ms</span>
+            </div>
+          </div>
+          ${scripts ? `<div class="log-scripts"><strong>Scripts:</strong><br>${scripts}</div>` : ''}
+        `
+
+        // placeholder 제거
+        const placeholder = logContainer.querySelector('.log-placeholder')
+        if (placeholder) placeholder.remove()
+
+        logContainer.insertBefore(logItem, logContainer.firstChild)
+      }
+
+      function clearLog() {
+        logContainer.innerHTML = '<p class="log-placeholder">버튼을 클릭하면 LoAF 감지 결과가 여기에 표시됩니다.</p>'
+        logCount = 0
+      }
+
+      // 메인 스레드를 블로킹하는 작업
+      function blockMainThread(ms) {
+        const start = performance.now()
+        while (performance.now() - start < ms) {
+          // 의도적으로 메인 스레드 블로킹
+        }
+      }
+
+      // 느린 작업 (200ms)
+      function runSlowTask() {
+        const btn = event.target.closest('button')
+        btn.classList.add('running')
+
+        blockMainThread(200)
+
+        btn.classList.remove('running')
+        btn.classList.add('done')
+        setTimeout(() => btn.classList.remove('done'), 500)
+      }
+
+      // 매우 느린 작업 (500ms)
+      function runVerySlowTask() {
+        const btn = event.target.closest('button')
+        btn.classList.add('running')
+
+        blockMainThread(500)
+
+        btn.classList.remove('running')
+        btn.classList.add('done')
+        setTimeout(() => btn.classList.remove('done'), 500)
+      }
+
+      // 최적화된 작업 - yield로 분할
+      async function runOptimizedTask() {
+        const btn = event.target.closest('button')
+        btn.classList.add('running')
+
+        // 작업을 50ms 청크로 분할
+        const totalWork = 500
+        const chunkSize = 40
+
+        for (let i = 0; i < totalWork; i += chunkSize) {
+          blockMainThread(chunkSize)
+          // 브라우저에게 제어권 양보
+          await new Promise(r => setTimeout(r, 0))
+        }
+
+        btn.classList.remove('running')
+        btn.classList.add('done')
+        setTimeout(() => btn.classList.remove('done'), 500)
+      }
+
+      // 빠른 작업 (10ms) - LoAF 임계값 미만
+      function runFastTask() {
+        const btn = event.target.closest('button')
+        btn.classList.add('running')
+
+        blockMainThread(10)
+
+        btn.classList.remove('running')
+        btn.classList.add('done')
+        setTimeout(() => btn.classList.remove('done'), 500)
+      }
+    </script>
+  </body>
+</html>

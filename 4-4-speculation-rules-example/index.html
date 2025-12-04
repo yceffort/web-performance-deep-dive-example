@@ -24,7 +24,7 @@
             "where": {
               "selector_matches": ".prerender-link"
             },
-            "eagerness": "eager"
+            "eagerness": "immediate"
           }
         ]
       }
@@ -41,10 +41,10 @@
         <section class="info-box">
           <h2>테스트 방법</h2>
           <ol>
-            <li>Chrome DevTools → Network 탭 열기</li>
-            <li>아래 링크에 마우스를 올려보세요</li>
-            <li>Network 탭에서 prefetch/prerender 요청 확인</li>
-            <li>클릭하면 즉시 페이지가 로드됩니다</li>
+            <li>Chrome DevTools → Application → Speculative loads 탭 열기</li>
+            <li>Prerender 링크가 "Ready" 상태인지 확인</li>
+            <li>Prerender 링크 클릭 → activationStart &gt; 0 확인</li>
+            <li>일반 링크 클릭 → activationStart = 0 비교</li>
           </ol>
         </section>
 
@@ -70,7 +70,7 @@
         <section class="link-section">
           <h2>Prerender 링크</h2>
           <p class="description">
-            hover 시 페이지 전체를 미리 렌더링합니다. 클릭하면 즉시 표시됩니다.
+            페이지 로드 즉시 백그라운드에서 미리 렌더링됩니다. 클릭하면 즉시 표시됩니다.
           </p>
           <div class="link-grid">
             <a href="article-3.html" class="card prerender-link">
