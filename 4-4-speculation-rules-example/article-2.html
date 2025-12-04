@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>이미지 최적화 전략 - Speculation Rules Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Speculation Rules API Demo</h1>
+      </header>
+
+      <main class="main">
+        <a href="index.html" class="back-link">← 목록으로 돌아가기</a>
+
+        <article class="article">
+          <h1>이미지 최적화 전략</h1>
+          <p class="article-meta">
+            <span class="badge prefetch">prefetch로 로드됨</span>
+          </p>
+
+          <div class="article-content">
+            <p>
+              이미지는 웹 페이지에서 가장 큰 용량을 차지합니다. 평균적으로 웹 페이지 총 용량의
+              50% 이상이 이미지입니다. 따라서 이미지 최적화는 성능 개선의 핵심입니다.
+            </p>
+
+            <h2>차세대 이미지 포맷</h2>
+            <ul>
+              <li><strong>WebP</strong>: JPEG 대비 25-35% 작은 용량, 모든 브라우저 지원</li>
+              <li><strong>AVIF</strong>: WebP 대비 20% 추가 압축, Chrome/Firefox 지원</li>
+            </ul>
+
+            <h2>반응형 이미지</h2>
+            <p>
+              srcset과 sizes 속성을 활용하면 디바이스에 맞는 최적의 이미지를 제공할 수 있습니다.
+              불필요하게 큰 이미지를 다운로드하는 것을 방지합니다.
+            </p>
+
+            <div class="load-info" id="load-info"></div>
+          </div>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p>이 페이지는 <strong>prefetch</strong>로 미리 로드되었습니다.</p>
+      </footer>
+    </div>
+
+    <script>
+      const info = document.getElementById('load-info')
+      const navEntry = performance.getEntriesByType('navigation')[0]
+      if (navEntry) {
+        const loadTime = Math.round(navEntry.loadEventEnd - navEntry.startTime)
+        info.innerHTML = `
+          <strong>페이지 로드 정보:</strong><br>
+          로드 시간: ${loadTime}ms<br>
+          전송 크기: ${navEntry.transferSize ? navEntry.transferSize + ' bytes' : '캐시에서 로드'}
+        `
+      }
+    </script>
+  </body>
+</html>

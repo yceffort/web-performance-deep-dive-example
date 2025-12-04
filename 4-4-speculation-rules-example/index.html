@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Speculation Rules API Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- Speculation Rules: 문서 규칙 -->
+    <script type="speculationrules">
+      {
+        "prefetch": [
+          {
+            "source": "document",
+            "where": {
+              "selector_matches": ".prefetch-link"
+            },
+            "eagerness": "eager"
+          }
+        ],
+        "prerender": [
+          {
+            "source": "document",
+            "where": {
+              "selector_matches": ".prerender-link"
+            },
+            "eagerness": "eager"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Speculation Rules API Demo</h1>
+        <p class="subtitle">prefetch와 prerender로 즉각적인 페이지 전환 체험</p>
+      </header>
+
+      <main class="main">
+        <section class="info-box">
+          <h2>테스트 방법</h2>
+          <ol>
+            <li>Chrome DevTools → Network 탭 열기</li>
+            <li>아래 링크에 마우스를 올려보세요</li>
+            <li>Network 탭에서 prefetch/prerender 요청 확인</li>
+            <li>클릭하면 즉시 페이지가 로드됩니다</li>
+          </ol>
+        </section>
+
+        <section class="link-section">
+          <h2>Prefetch 링크</h2>
+          <p class="description">
+            hover 시 HTML만 미리 다운로드합니다. 클릭하면 캐시된 HTML을 사용합니다.
+          </p>
+          <div class="link-grid">
+            <a href="article-1.html" class="card prefetch-link">
+              <span class="badge prefetch">prefetch</span>
+              <h3>웹 성능 최적화 기초</h3>
+              <p>Core Web Vitals와 성능 측정 방법을 알아봅니다.</p>
+            </a>
+            <a href="article-2.html" class="card prefetch-link">
+              <span class="badge prefetch">prefetch</span>
+              <h3>이미지 최적화 전략</h3>
+              <p>WebP, AVIF 포맷과 반응형 이미지를 다룹니다.</p>
+            </a>
+          </div>
+        </section>
+
+        <section class="link-section">
+          <h2>Prerender 링크</h2>
+          <p class="description">
+            hover 시 페이지 전체를 미리 렌더링합니다. 클릭하면 즉시 표시됩니다.
+          </p>
+          <div class="link-grid">
+            <a href="article-3.html" class="card prerender-link">
+              <span class="badge prerender">prerender</span>
+              <h3>JavaScript 번들 최적화</h3>
+              <p>코드 스플리팅과 트리 쉐이킹을 실습합니다.</p>
+            </a>
+            <a href="article-4.html" class="card prerender-link">
+              <span class="badge prerender">prerender</span>
+              <h3>캐싱 전략 마스터</h3>
+              <p>브라우저 캐시와 CDN 활용법을 배웁니다.</p>
+            </a>
+          </div>
+        </section>
+
+        <section class="link-section">
+          <h2>일반 링크 (비교용)</h2>
+          <p class="description">
+            Speculation Rules가 적용되지 않은 일반 링크입니다.
+          </p>
+          <div class="link-grid">
+            <a href="article-5.html" class="card normal-link">
+              <span class="badge normal">normal</span>
+              <h3>서버 사이드 렌더링</h3>
+              <p>SSR과 하이드레이션을 이해합니다.</p>
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p class="support-status"></p>
+        <p>Speculation Rules API Demo - Chrome 109+ 지원</p>
+      </footer>
+    </div>
+
+    <script>
+      const supportStatus = document.querySelector('.support-status')
+      if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) {
+        supportStatus.textContent = '✅ 이 브라우저는 Speculation Rules API를 지원합니다.'
+        supportStatus.style.color = '#22c55e'
+      } else {
+        supportStatus.textContent = '❌ 이 브라우저는 Speculation Rules API를 지원하지 않습니다. Chrome 109+에서 테스트하세요.'
+        supportStatus.style.color = '#ef4444'
+      }
+
+      // Speculation 상태 실시간 모니터링
+      const debugLog = document.createElement('div')
+      debugLog.id = 'debug-log'
+      debugLog.style.cssText = 'position:fixed;bottom:10px;right:10px;background:#1a1a2e;color:#fff;padding:12px;border-radius:8px;font-size:12px;max-width:300px;z-index:9999;font-family:monospace;'
+      debugLog.innerHTML = '<strong>🔍 Speculation Debug</strong><br>'
+      document.body.appendChild(debugLog)
+
+      // 링크 hover 이벤트 감지
+      document.querySelectorAll('.prefetch-link, .prerender-link').forEach(link => {
+        link.addEventListener('pointerenter', () => {
+          const type = link.classList.contains('prerender-link') ? 'prerender' : 'prefetch'
+          const url = link.getAttribute('href')
+          debugLog.innerHTML += `<br>🎯 ${type}: ${url}`
+
+          // 3초 후 메시지 정리
+          setTimeout(() => {
+            const lines = debugLog.innerHTML.split('<br>')
+            if (lines.length > 5) {
+              debugLog.innerHTML = lines.slice(0, 1).concat(lines.slice(-4)).join('<br>')
+            }
+          }, 3000)
+        })
+      })
+
+      // PerformanceObserver로 리소스 로딩 감지
+      if (window.PerformanceObserver) {
+        const observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.initiatorType === 'fetch' || entry.name.includes('article')) {
+              debugLog.innerHTML += `<br>📥 loaded: ${entry.name.split('/').pop()}`
+            }
+          }
+        })
+        observer.observe({ entryTypes: ['resource'] })
+      }
+    </script>
+  </body>
+</html>

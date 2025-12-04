@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>웹 성능 최적화 기초 - Speculation Rules Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Speculation Rules API Demo</h1>
+      </header>
+
+      <main class="main">
+        <a href="index.html" class="back-link">← 목록으로 돌아가기</a>
+
+        <article class="article">
+          <h1>웹 성능 최적화 기초</h1>
+          <p class="article-meta">
+            <span class="badge prefetch">prefetch로 로드됨</span>
+          </p>
+
+          <div class="article-content">
+            <p>
+              웹 성능 최적화는 사용자 경험의 핵심입니다. 페이지 로드 속도가 1초 지연될 때마다
+              전환율은 7% 감소하고, 페이지 뷰는 11% 줄어듭니다.
+            </p>
+
+            <h2>Core Web Vitals</h2>
+            <p>
+              Google이 정의한 핵심 웹 지표는 세 가지로 구성됩니다:
+            </p>
+            <ul>
+              <li><strong>LCP (Largest Contentful Paint)</strong>: 가장 큰 콘텐츠가 화면에 표시되는 시간</li>
+              <li><strong>INP (Interaction to Next Paint)</strong>: 사용자 상호작용에 대한 응답 시간</li>
+              <li><strong>CLS (Cumulative Layout Shift)</strong>: 레이아웃 변경으로 인한 시각적 안정성</li>
+            </ul>
+
+            <h2>측정 도구</h2>
+            <p>
+              성능 측정에는 다양한 도구를 사용할 수 있습니다. Chrome DevTools의 Performance 탭,
+              Lighthouse, WebPageTest 등이 대표적입니다.
+            </p>
+
+            <div class="load-info" id="load-info"></div>
+          </div>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p>이 페이지는 <strong>prefetch</strong>로 미리 로드되었습니다.</p>
+      </footer>
+    </div>
+
+    <script>
+      const info = document.getElementById('load-info')
+      const navEntry = performance.getEntriesByType('navigation')[0]
+      if (navEntry) {
+        const loadTime = Math.round(navEntry.loadEventEnd - navEntry.startTime)
+        info.innerHTML = `
+          <strong>페이지 로드 정보:</strong><br>
+          로드 시간: ${loadTime}ms<br>
+          전송 크기: ${navEntry.transferSize ? navEntry.transferSize + ' bytes' : '캐시에서 로드'}
+        `
+      }
+    </script>
+  </body>
+</html>

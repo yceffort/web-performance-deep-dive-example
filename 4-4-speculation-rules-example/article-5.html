@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>서버 사이드 렌더링 - Speculation Rules Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Speculation Rules API Demo</h1>
+      </header>
+
+      <main class="main">
+        <a href="index.html" class="back-link">← 목록으로 돌아가기</a>
+
+        <article class="article">
+          <h1>서버 사이드 렌더링</h1>
+          <p class="article-meta">
+            <span class="badge normal">일반 로드</span>
+          </p>
+
+          <div class="article-content">
+            <p>
+              서버 사이드 렌더링(SSR)은 서버에서 HTML을 생성하여 클라이언트에 전달합니다.
+              초기 로드 시 완성된 HTML을 받아 FCP를 개선할 수 있습니다.
+            </p>
+
+            <h2>SSR의 장점</h2>
+            <ul>
+              <li>빠른 FCP(First Contentful Paint)</li>
+              <li>SEO 최적화</li>
+              <li>느린 네트워크/디바이스에서 유리</li>
+            </ul>
+
+            <h2>하이드레이션</h2>
+            <p>
+              서버에서 렌더링된 HTML에 클라이언트 JavaScript를 연결하는 과정입니다.
+              이 과정에서 TTI가 지연될 수 있어 최적화가 필요합니다.
+            </p>
+
+            <div class="load-info" id="load-info"></div>
+          </div>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p>이 페이지는 Speculation Rules 없이 <strong>일반 로드</strong>되었습니다.</p>
+      </footer>
+    </div>
+
+    <script>
+      const info = document.getElementById('load-info')
+      const navEntry = performance.getEntriesByType('navigation')[0]
+      if (navEntry) {
+        const activationStart = navEntry.activationStart || 0
+        const isPrerendered = activationStart > 0
+
+        info.innerHTML = `
+          <strong>🔍 Prerender 상태:</strong><br>
+          <span style="font-size:1.2em;color:${isPrerendered ? '#16a34a' : '#dc2626'}">
+            ${isPrerendered ? '✅ Prerender로 로드됨!' : '❌ 일반 로드 (Speculation Rules 미적용)'}
+          </span><br><br>
+          <code>activationStart: ${Math.round(activationStart)}ms</code><br>
+          <small>→ 0 = 클릭 후 렌더링 시작 (prerender 없음)</small><br><br>
+          <em>이 페이지는 Speculation Rules가 적용되지 않았습니다.<br>
+          article-3, article-4와 activationStart 값을 비교해보세요.</em>
+        `
+      }
+    </script>
+  </body>
+</html>

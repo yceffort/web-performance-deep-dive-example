@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JavaScript 번들 최적화 - Speculation Rules Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Speculation Rules API Demo</h1>
+      </header>
+
+      <main class="main">
+        <a href="index.html" class="back-link">← 목록으로 돌아가기</a>
+
+        <article class="article">
+          <h1>JavaScript 번들 최적화</h1>
+          <p class="article-meta">
+            <span class="badge prerender">prerender로 로드됨</span>
+          </p>
+
+          <div class="article-content">
+            <p>
+              JavaScript는 파싱, 컴파일, 실행 모두 비용이 큰 리소스입니다.
+              같은 용량의 이미지보다 처리 시간이 훨씬 깁니다.
+            </p>
+
+            <h2>코드 스플리팅</h2>
+            <p>
+              동적 import()를 사용하면 필요한 시점에 코드를 로드할 수 있습니다.
+              초기 번들 크기를 줄여 TTI(Time to Interactive)를 개선합니다.
+            </p>
+
+            <h2>트리 쉐이킹</h2>
+            <p>
+              ES 모듈의 정적 구조를 활용해 사용하지 않는 코드를 제거합니다.
+              번들러가 자동으로 수행하지만, side effects 설정이 중요합니다.
+            </p>
+
+            <div class="load-info" id="load-info"></div>
+          </div>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p>이 페이지는 <strong>prerender</strong>로 미리 렌더링되었습니다. 즉시 표시됩니다!</p>
+      </footer>
+    </div>
+
+    <script>
+      const info = document.getElementById('load-info')
+      const navEntry = performance.getEntriesByType('navigation')[0]
+      if (navEntry) {
+        const activationStart = navEntry.activationStart || 0
+        const isPrerendered = activationStart > 0
+
+        info.innerHTML = `
+          <strong>🔍 Prerender 상태:</strong><br>
+          <span style="font-size:1.2em;color:${isPrerendered ? '#16a34a' : '#dc2626'}">
+            ${isPrerendered ? '✅ Prerender로 로드됨!' : '❌ 일반 로드'}
+          </span><br><br>
+          <code>activationStart: ${Math.round(activationStart)}ms</code><br>
+          <small>${isPrerendered
+            ? '→ 0보다 큼 = 페이지가 백그라운드에서 미리 렌더링되었음'
+            : '→ 0 = 클릭 후 렌더링 시작'}</small>
+        `
+      }
+    </script>
+  </body>
+</html>
