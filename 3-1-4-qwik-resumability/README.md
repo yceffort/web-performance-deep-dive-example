@@ -3,7 +3,7 @@
 - [Qwik Docs](https://qwik.dev/)
 - [Discord](https://qwik.dev/chat)
 - [Qwik GitHub](https://github.com/QwikDev/qwik)
-- [@QwikDev](https://twitter.com/QwikDev)
+- [@QwikDev](https://x.com/QwikDev)
 - [Vite](https://vitejs.dev/)
 
 ---
