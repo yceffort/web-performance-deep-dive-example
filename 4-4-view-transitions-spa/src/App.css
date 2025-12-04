@@ -1,0 +1,283 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  color: #1a1a2e;
+  transition: background 0.3s, color 0.3s;
+}
+
+.app.dark {
+  background: #1a1a2e;
+  color: #f5f5f5;
+}
+
+/* 헤더 */
+.header {
+  background: #1a1a2e;
+  color: white;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app.dark .header {
+  background: #0f0f1a;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+}
+
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 메인 */
+.main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 상품 그리드 */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.product-card {
+  background: white;
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.app.dark .product-card {
+  background: #2a2a4e;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.product-image {
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-icon {
+  font-size: 4rem;
+}
+
+.product-info {
+  padding: 1.25rem;
+}
+
+.product-info h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #e94560;
+}
+
+/* 상세 페이지 */
+.product-detail {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.back-button {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.app.dark .back-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.detail-image {
+  height: 300px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.detail-icon {
+  font-size: 8rem;
+}
+
+.detail-info {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app.dark .detail-info {
+  background: #2a2a4e;
+}
+
+.detail-title {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.detail-price {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #e94560;
+  margin-bottom: 1rem;
+}
+
+.detail-description {
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.app.dark .detail-description {
+  color: #aaa;
+}
+
+.buy-button {
+  background: #e94560;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.buy-button:hover {
+  background: #d63654;
+}
+
+/* 푸터 */
+.footer {
+  background: #1a1a2e;
+  color: #888;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.app.dark .footer {
+  background: #0f0f1a;
+}
+
+.support-status {
+  margin-top: 0.5rem;
+}
+
+/* ========================================
+   View Transitions 커스텀 애니메이션
+   ======================================== */
+
+::view-transition-old(root) {
+  animation: fade-out 0.2s ease-out both;
+}
+
+::view-transition-new(root) {
+  animation: fade-in 0.3s ease-out both;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* 상품 이미지 전환 */
+::view-transition-group(product-image-1),
+::view-transition-group(product-image-2),
+::view-transition-group(product-image-3),
+::view-transition-group(product-image-4) {
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 제목 전환 */
+::view-transition-group(product-title-1),
+::view-transition-group(product-title-2),
+::view-transition-group(product-title-3),
+::view-transition-group(product-title-4) {
+  animation-duration: 0.35s;
+  animation-timing-function: ease-out;
+}
+
+/* 페이지 제목 전환 */
+::view-transition-old(page-title) {
+  animation: slide-out-left 0.25s ease-out both;
+}
+
+::view-transition-new(page-title) {
+  animation: slide-in-right 0.25s ease-out both;
+}
+
+@keyframes slide-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
